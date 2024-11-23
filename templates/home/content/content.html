@@ -1,0 +1,90 @@
+{% load static %}
+<div class="container">
+    <div class="container mt-4">
+        <div class="book-section">
+            <!-- Section title -->
+            <div class="section-title">TRUYỆN HOT</div>
+
+            <!-- Book list -->
+            <div class="row">
+                {% for truyen_hot in danh_sach_truyen_hot %}
+                <!-- Book item -->
+                <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                    <div class="book-card">
+                        <a href="{{ truyen_hot.link}}" title=""><img src="{% static truyen_hot.image_path %}" alt="{{ truyen_hot.ten_truyen_full }}"></a>
+                        <div class="book-status">{{ truyen_hot.status }}</div>
+                        <div class="book-title">{{ truyen_hot.ten_truyen_full }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left column: List of new books -->
+            <div class="col-lg-8">
+                <div class="section-title">TRUYỆN MỚI CẬP NHẬT</div>
+                <div class="book-list">
+                    <div class="book-list-item">
+                        <span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span>
+                        <span class="badge badge-hot">Hot</span>
+                        <span class="chapter">Chương 576</span>
+                        <span class="update-time">2 giờ trước</span>
+                    </div>
+                    <div class="book-list-item">
+                        <span class="book-title">Trợ Lý Làm Cô Loli Muốn Nói</span>
+                        <span class="badge badge-full">Full</span>
+                        <span class="chapter">Chương 56</span>
+                        <span class="update-time">2 giờ trước</span>
+                    </div>
+                    <div class="book-list-item">
+                        <span class="book-title">Doạt Thê - Dịch Chiếu</span>
+                        <span class="badge badge-full">Full</span>
+                        <span class="chapter">Chương 199</span>
+                        <span class="update-time">2 giờ trước</span>
+                    </div>
+                    <!-- Thêm các mục sách khác ở đây với cấu trúc tương tự -->
+                </div>
+            </div>
+
+            <!-- Right column: Sidebar with "Truyện đang đọc" and "Thể loại truyện" -->
+            <div class="col-lg-4">
+                <div class="sidebar">
+                    <!-- Truyện đang đọc -->
+                    <div class="sidebar-title">TRUYỆN ĐANG ĐỌC</div>
+                    <a href="http://{{ request.get_host }}/tien-nghich" class="sidebar-link">Tiên Nghịch <span class="text-success">Đọc tiếp C2</span></a>
+                    <a href="#" class="sidebar-link">Đấu Phá Thương Khung <span class="text-success">Đọc tiếp
+                            C1</span></a>
+                    <a href="#" class="sidebar-link">Thần Ấn Vương Tọa <span class="text-success">Đọc tiếp
+                            C316</span></a>
+
+                    <!-- Thể loại truyện -->
+                    <div class="sidebar-title mt-4">THỂ LOẠI TRUYỆN</div>
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="#" class="sidebar-link">Tiên Hiệp</a>
+                            <a href="#" class="sidebar-link">Ngôn Tình</a>
+                            <a href="#" class="sidebar-link">Quan Trường</a>
+                            <a href="#" class="sidebar-link">Khoa Huyễn</a>
+                            <a href="#" class="sidebar-link">Dị Năng</a>
+                            <a href="#" class="sidebar-link">Lịch Sử</a>
+                            <a href="#" class="sidebar-link">Xuyên Không</a>
+                            <a href="#" class="sidebar-link">Trinh Thám</a>
+                            <a href="#" class="sidebar-link">Linh Dị</a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="sidebar-link">Kiếm Hiệp</a>
+                            <a href="#" class="sidebar-link">Đam Mỹ</a>
+                            <a href="#" class="sidebar-link">Võng Du</a>
+                            <a href="#" class="sidebar-link">Huyền Huyễn</a>
+                            <a href="#" class="sidebar-link">Thám Hiểm</a>
+                            <a href="#" class="sidebar-link">Ngược</a>
+                            <a href="#" class="sidebar-link">Nữ Cường</a>
+                            <a href="#" class="sidebar-link">Hài Hước</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

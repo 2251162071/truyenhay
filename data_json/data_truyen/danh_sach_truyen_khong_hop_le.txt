@@ -1,0 +1,2 @@
+C:\Users\huand\Documents\GitHub\truyenhay1\truyen\data_json\data_truyen\111danh_sach_truyen_khong_hop_le.json
+C:\Users\huand\Documents\GitHub\truyenhay1\truyen\data_json\data_truyen\danh_sach_truyen_khong_hop_le.json

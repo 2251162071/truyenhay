@@ -1,0 +1,100 @@
+
+
+{% load static %}
+<!-- ============================= HEADER ============================ -->
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="http://{{ request.get_host }}">
+            <img src="{% static 'images/truyenhaynobg.png' %}" alt="Logo"
+                style="height: 30px; margin-right: 10px;">Truyện hay
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="http://{{ request.get_host }}">Trang chủ <span
+                            class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="genreDropdown" role="button"
+                        onclick="toggleDropdown(event)">
+                        Thể loại
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="genreDropdown">
+                        <div class="dropdown-column">
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/tien-hiep/trang-1">Tiên
+                                Hiệp</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/kiem-hiep/trang-1">Kiếm
+                                Hiệp</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/ngon-tinh/trang-1">Ngôn Tình</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/dam-my/trang-1">Đam
+                                Mỹ</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/quan-truong/trang-1">Quan Trường</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/vong-du/trang-1">Võng
+                                Du</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/khoa-huyen/trang-1">Khoa Huyễn</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/he-thong/trang-1">Hệ
+                                Thống</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/huyen-huyen/trang-1">Huyền Huyễn</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/di-gioi/trang-1">Dị
+                                Giới</a>
+                        </div>
+                        <div class="dropdown-column">
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/di-nang/trang-1">Dị
+                                Năng</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/quan-su/trang-1">Quân
+                                Sự</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/lich-su/trang-1">Lịch
+                                Sử</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/xuyen-khong/trang-1">Xuyên Không</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/xuyen-nhanh/trang-1">Xuyên Nhanh</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/trong-sinh/trang-1">Trọng Sinh</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/trinh-tham/trang-1">Trinh Thám</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/tham-hiem/trang-1">Thám Hiểm</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/linh-di/trang-1">Linh
+                                Dị</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/sac/trang-1">Sắc</a>
+                        </div>
+                        <div class="dropdown-column">
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/nguoc/trang-1">Ngược</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/sung/trang-1">Sủng</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/cung-dau/trang-1">Cung
+                                Đấu</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/nu-cuong/trang-1">Nữ
+                                Cường</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/gia-dau/trang-1">Gia
+                                Đấu</a>
+                            <a class="dropdown-item"
+                                href="http://{{ request.get_host }}/the-loai/dong-phuong/trang-1">Đông Phương</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/do-thi/trang-1">Đô
+                                Thị</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/bach-hop/trang-1">Bách
+                                Hợp</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/hai-uoc/trang-1">Hài
+                                Hước</a>
+                            <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/dien-van/trang-1">Điền
+                                Văn</a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- ============================= #END HEADER ============================ -->

@@ -1,0 +1,278 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Truyện Hot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'images/truyenhaynobg.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: "Palatino Linotype", "Arial", "Times New Roman", sans-serif;
+        }
+
+        .content {
+            font-size: 24px;
+        }
+
+        /* Custom styles for the 3-column dropdown */
+        .dropdown-menu {
+            width: 600px;
+            display: flex;
+            flex-wrap: nowrap;
+            display: none;
+            /* Hide by default */
+            position: absolute;
+        }
+
+        .dropdown-column {
+            flex: 1;
+            padding: 10px;
+        }
+
+        /* Show dropdown on toggle */
+        .dropdown-menu.show {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- ============================= HEADER ============================ -->
+        <!-- Header -->
+        <div class=" container">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="http://{{ request.get_host }}">
+                        <img src="{% static 'images/truyenhaynobg.png' %}" alt="Logo"
+                            style="height: 30px; margin-right: 10px;">Truyện hay
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+                        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                        <ul class="navbar-nav">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="http://{{ request.get_host }}">Trang chủ <span
+                                        class="sr-only">(current)</span></a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="genreDropdown" role="button"
+                                    onclick="toggleDropdown(event)">
+                                    Thể loại
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="genreDropdown">
+                                    <div class="dropdown-column">
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/tien-hiep/trang-1">Tiên
+                                            Hiệp</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/kiem-hiep/trang-1">Kiếm
+                                            Hiệp</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/ngon-tinh/trang-1">Ngôn Tình</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/dam-my/trang-1">Đam
+                                            Mỹ</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/quan-truong/trang-1">Quan
+                                            Trường</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/vong-du/trang-1">Võng
+                                            Du</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/khoa-huyen/trang-1">Khoa Huyễn</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/he-thong/trang-1">Hệ
+                                            Thống</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/huyen-huyen/trang-1">Huyền
+                                            Huyễn</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/di-gioi/trang-1">Dị
+                                            Giới</a>
+                                    </div>
+                                    <div class="dropdown-column">
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/di-nang/trang-1">Dị
+                                            Năng</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/quan-su/trang-1">Quân
+                                            Sự</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/lich-su/trang-1">Lịch
+                                            Sử</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/xuyen-khong/trang-1">Xuyên
+                                            Không</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/xuyen-nhanh/trang-1">Xuyên
+                                            Nhanh</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/trong-sinh/trang-1">Trọng Sinh</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/trinh-tham/trang-1">Trinh Thám</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/tham-hiem/trang-1">Thám Hiểm</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/linh-di/trang-1">Linh
+                                            Dị</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/sac/trang-1">Sắc</a>
+                                    </div>
+                                    <div class="dropdown-column">
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/nguoc/trang-1">Ngược</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/sung/trang-1">Sủng</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/cung-dau/trang-1">Cung
+                                            Đấu</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/nu-cuong/trang-1">Nữ
+                                            Cường</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/gia-dau/trang-1">Gia
+                                            Đấu</a>
+                                        <a class="dropdown-item"
+                                            href="http://{{ request.get_host }}/the-loai/dong-phuong/trang-1">Đông
+                                            Phương</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/do-thi/trang-1">Đô
+                                            Thị</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/bach-hop/trang-1">Bách
+                                            Hợp</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/hai-uoc/trang-1">Hài
+                                            Hước</a>
+                                        <a class="dropdown-item" href="http://{{ request.get_host }}/the-loai/dien-van/trang-1">Điền
+                                            Văn</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+         </div>
+        
+        <!-- ============================= #END HEADER ============================ -->
+        <div class="container mt-4">
+            <div class="book-section">
+                <!-- Section title -->
+                <div class="section-title">TRUYỆN HOT</div>
+
+                <!-- Book list -->
+                <div class="row">
+                    {% for truyen_hot in danh_sach_truyen_hot %}
+                    <!-- Book item -->
+                    <div class="col-6 col-sm-4 col-md-4 col-lg-2">
+                        <div class="book-card">
+                            <a href="{{ truyen_hot.link }}" title=""><img
+                                    src="{% static truyen_hot.image_path %}" alt="{{ truyen_hot.title }}"></a>
+                            <div class="book-status">{{ truyen_hot.status }}</div>
+                            <div class="book-title">{{ truyen_hot.title_full }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <!-- Left column: List of new books -->
+                <div class="col-lg-8">
+                    <div class="section-title">TRUYỆN MỚI CẬP NHẬT</div>
+                    <table class="table table-dark table-striped">
+                        <tbody>
+                            <tr>
+                                <td><span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td><span class="chapter">Chương 576</span></td>
+                                <td><span class="update-time">2 giờ trước</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td><span class="chapter">Chương 576</span></td>
+                                <td><span class="update-time">2 giờ trước</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td><span class="chapter">Chương 576</span></td>
+                                <td><span class="update-time">2 giờ trước</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td><span class="chapter">Chương 576</span></td>
+                                <td><span class="update-time">2 giờ trước</span></td>
+                            </tr>
+                            <tr>
+                                <td><span class="book-title">Trọng Sinh Trở Thành Mạnh Nhất Vũ Trụ</span></td>
+                                <td><span class="badge badge-hot">Hot</span></td>
+                                <td><span class="chapter">Chương 576</span></td>
+                                <td><span class="update-time">2 giờ trước</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right column: Sidebar with "Truyện đang đọc" and "Thể loại truyện" -->
+                <div class="col-lg-4">
+                    <!-- <div class="sidebar">
+                        
+                    </div> -->
+                    <!-- Truyện đang đọc -->
+                    <div class="section-title">TRUYỆN ĐANG ĐỌC</div>
+                    <table class="table table-dark table-striped">
+                        <tr>
+                            <td><span>Tiên Nghịch</span></td>
+                            <td><a href="http://{{ request.get_host }}/tien-nghich/chuong-2">Đọc tiếp C2</a></td>
+                        </tr>
+                        <tr>
+                            <td><span>Tiên Nghịch</span></td>
+                            <td><a href="http://{{ request.get_host }}/tien-nghich/chuong-2">Đọc tiếp C2</a></td>
+                        </tr>
+                        <tr>
+                            <td><span>Tiên Nghịch</span></td>
+                            <td><a href="http://{{ request.get_host }}/tien-nghich/chuong-2">Đọc tiếp C2</a></td>
+                        </tr>
+                    </table>
+                    
+                    
+                    <!-- Thể loại truyện -->
+                    <div class="section-title mt-4">THỂ LOẠI TRUYỆN</div>
+                    <table class="table table-dark table-striped">
+                        <tr>
+                            <td><span>Tiên Hiệp</span></td>
+                        </tr>
+                        <tr>
+                            <td><span>Ngôn Tình</span></td>
+                        </tr>
+                        <tr>
+                            <td><span>Kiếm Hiệp</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- FOOTER -->
+        <footer class="text-center mt-4">
+            <p>Bản quyền &copy; 2024 Trang Truyện. Tất cả quyền được bảo lưu.</p>
+        </footer>
+        <!-- #END FOOTER -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Function to toggle the dropdown visibility on click
+            function toggleDropdown(event) {
+                event.preventDefault(); // Prevent default link behavior
+                const dropdownMenu = document.querySelector('#genreDropdown + .dropdown-menu');
+                dropdownMenu.classList.toggle('show');
+            }
+
+            // Close the dropdown if clicked outside
+            document.addEventListener('click', function (e) {
+                const genreDropdown = document.getElementById('genreDropdown');
+                const dropdownMenu = document.querySelector('#genreDropdown + .dropdown-menu');
+                if (!genreDropdown.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('show');
+                }
+            });
+        </script>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+{% extends "base.html" %} 
+{% block title %}
+    Danh sách truyện
+{% endblock %} 
+{% block content %}
+    <!-- Navbar -->
+    <h2 class="text-center mb-4">Danh Sách Truyện</h2>
+    <!-- Container for pagination and input in one row -->
+    <div class="d-flex justify-content-center align-items-center mb-4">
+        <!-- Pagination -->
+        <ul class="pagination mb-0">
+            {% if has_prev %}
+            <li class="page-item"><a class="page-link" href="{% url 'genre_name' the_loai=the_loai so_trang=prev_page %}">Previous</a></li>
+            {% endif %}
+            <li class="page-item"><a class="page-link" href="{% url 'genre_name' the_loai=the_loai so_trang=so_trang %}">{{ so_trang }}</a></li>
+            {% if has_next %}
+            <li class="page-item"><a class="page-link" href="{% url 'genre_name' the_loai=the_loai so_trang=next_page %}">Next</a></li>
+            {% endif %}
+        </ul>
+    
+        <!-- Go to Page Input -->
+        <div class="input-group ml-4" style="max-width: 200px;">
+            <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+            </div>
+        </div>
+    </div>  
+
+    <div class="mt-4">
+        <!-- Title -->
+        
+
+        <!-- Chapter list -->
+        <div class="row mt-4">
+
+            <div class="col-md-6">
+                <ul class="list-group">
+                    {% for truyen in danh_sach_truyen %}
+                    {% if forloop.counter0|divisibleby:2 %}
+                    <li class="list-group-item">
+                        <a href="{{ base_url }}/{{ truyen.title }}">{{ truyen.title_full }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul class="list-group">
+                    {% for truyen in danh_sach_truyen %}
+                    {% if not forloop.counter0|divisibleby:2 %}
+                    <li class="list-group-item">
+                        <a href="{{ base_url }}/{{ truyen.title }}">{{ truyen.title_full }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+        function goToPage() {
+            var pageInput = document.getElementById('pageInput').value;
+            var pageNumber = parseInt(pageInput);
+            var maxPage = '{{ max_page }}';
+
+            if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > maxPage) {
+                pageNumber = 1;
+            }
+
+            window.location.href = 'trang-' + pageNumber;
+        }
+    </script>
+{% endblock %}

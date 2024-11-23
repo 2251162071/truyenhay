@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="{% static 'images/truyenhaynobg.ico' %}" type="image/x-icon" />
+    <title>URLs</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5">Danh sách chức năng</h1>
+        <ul class="list-group mt-3">
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='tien-hiep' %}">Tiên Hiệp</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='kiem-hiep' %}">Kiếm Hiệp</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='ngon-tinh' %}">Ngôn Tình</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='dam-my' %}">Đam Mỹ</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='quan-truong' %}">Quan Trường</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='vong-du' %}">Võng Du</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='khoa-huyen' %}">Khoa Huyễn</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='he-thong' %}">Hệ Thống</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='huyen-huyen' %}">Huyền Huyễn</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='di-gioi' %}">Dị Giới</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='di-nang' %}">Dị Năng</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='quan-su' %}">Quân Sự</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='lich-su' %}">Lịch Sử</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='xuyen-khong' %}">Xuyên Không</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='xuyen-nhanh' %}">Xuyên Nhanh</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='trong-sinh' %}">Trọng Sinh</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='trinh-tham' %}">Trinh Thám</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='tham-hiem' %}">Thám Hiểm</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='linh-di' %}">Linh Dị</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='sac' %}">Sắc</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='nguoc' %}">Ngược</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='sung' %}">Sủng</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='cung-dau' %}">Cung Đấu</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='nu-cuong' %}">Nữ Cường</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='gia-dau' %}">Gia Đấu</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='dong-phuong' %}">Đông Phương</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='do-thi' %}">Đô Thị</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='bach-hop' %}">Bách Hợp</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='hai-huoc' %}">Hài Hước</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='dien-van' %}">Điền Văn</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='co-dai' %}">Cổ Đại</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='mat-the' %}">Mạt Thế</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='truyen-teen' %}">Truyện Teen</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='phuong-tay' %}">Phương Tây</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='nu-phu' %}">Nữ Phụ</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='light-novel' %}">Light Novel</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='viet-nam' %}">Việt Nam</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='doan-van' %}">Đoản Văn</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='review-sach' %}">Review Sách</a></li>
+            <li class="list-group-item"><a href="{% url 'the_loai_name' the_loai_str='khac' %}">Khác</a></li>
+        </ul>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,114 @@
+[
+    {
+        "title": "Mẹ Kế Ở Cổ Đại Làm Cá Mặn",
+        "link": "http://localhost:8000/me-ke-o-co-dai-lam-ca-man/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Xuyên Về Cổ Đại Làm Tiểu Cô Nương Lợi Hại",
+        "link": "http://localhost:8000/xuyen-ve-co-dai-lam-tieu-co-nuong-loi-hai/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Cá Cược - Mộc Khẩu Ngân",
+        "link": "http://localhost:8000/ca-cuoc-moc-khau-ngan/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Em Như Gió Nam",
+        "link": "http://localhost:8000/em-nhu-gio-nam/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Quý Phi Mỗi Ngày Chỉ Muốn Làm Cá Muối",
+        "link": "http://localhost:8000/quy-phi-moi-ngay-chi-muon-lam-ca-muoi/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Ta Không Làm Thiếp",
+        "link": "http://localhost:8000/ta-khong-lam-thiep/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Mùa Xuân Của Anh",
+        "link": "http://localhost:8000/mua-xuan-cua-anh/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Sống Lại Tôi Trở Thành Họa Quốc Yêu Nữ",
+        "link": "http://localhost:8000/song-lai-toi-tro-thanh-hoa-quoc-yeu-nu/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Quân Hôn 70: Đội Trưởng Đội Cứu Hỏa Sủng Thê Như Bảo",
+        "link": "http://localhost:8000/quan-hon-70-doi-truong-doi-cuu-hoa-sung-the-nhu-bao/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Giả Bộ",
+        "link": "http://localhost:8000/gia-bo/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Bí Mật Tân Hôn",
+        "link": "http://localhost:8000/bi-mat-tan-hon/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Căn Cứ Nông Học Số Chín",
+        "link": "http://localhost:8000/can-cu-nong-hoc-so-chin/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Xuyên Thành Bạch Nguyệt Quang Của Nam Chính, Ta Bị Nữ Phụ Tính Kế",
+        "link": "http://localhost:8000/xuyen-thanh-bach-nguyet-quang-cua-nam-chinh-ta-bi-nu-phu-tinh-ke/chuong-1",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Cố Tiểu Tây",
+        "link": "http://localhost:8000/co-tieu-tay/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Kiếm Lai",
+        "link": "http://localhost:8000/kiem-lai/",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    },
+    {
+        "title": "Xuyên Sách Thành Pháo Hôi, Chống Lại Mệnh Xui Xẻo",
+        "link": "http://localhost:8000/xuyen-sach-thanh-phao-hoi-chong-lai-menh-xui-xeo/chuong-1",
+        "image_name": "default",
+        "image_path": "images\\default.webp",
+        "status": "FULL"
+    }
+]
