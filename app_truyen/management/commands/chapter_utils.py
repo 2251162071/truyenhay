@@ -6,6 +6,8 @@ from app_truyen.models import Story, Chapter
 from app_truyen.vpn_utils import toggle_vpn, get_vpn_status
 import logging
 
+from data_json.proxies.h import response
+
 logger = logging.getLogger(__name__)
 
 def get_story_by_name(story_name):
@@ -22,7 +24,6 @@ def fetch_chapter_content(chapter_url):
     Gửi request tới URL để lấy nội dung chương.
     """
     vpn_enabled = get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
-
     while True:
         try:
             response = requests.get(chapter_url, timeout=10)
@@ -47,7 +48,7 @@ def fetch_chapter_content(chapter_url):
     except AttributeError:
         pass  # Nếu không tìm thấy tiêu đề hoặc nội dung, trả về None
 
-    return chapter_content, chapter_title
+    return chapter_title, chapter_content
 
 def save_or_update_chapter(story_id, chapter_number, title, content):
     """

@@ -1,9 +1,15 @@
+import os
+
 import requests
 from django.core.management.base import BaseCommand
 from app_truyen.models import Story, Chapter
 from truyenhay.settings import CRAWL_URL
 from django.utils import timezone
 from bs4 import BeautifulSoup
+import subprocess
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -24,54 +30,48 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         story_name = kwargs['story_name']
         chapter_number = kwargs['chapter_number']
+
         try:
-            chapter_data = self.get_chapter_data(story_name, chapter_number)
-            if chapter_data['exists']:
-                self.stdout.write(self.style.SUCCESS(f"Chapter data updated: {chapter_data['chapter']}"))
+            story = self.get_story_by_name(story_name)
+            chapter_url = f"{CRAWL_URL}/{story_name}/chuong-{chapter_number}"
+            print('chapter_url', chapter_url)
+            title, content = self.fetch_chapter_content(chapter_url)
+            chapter, created = self.save_or_update_chapter(story.id, chapter_number, title, content)
+            if created:
+                self.stdout.write(self.style.SUCCESS(f"Chapter {chapter_number} added: {chapter.title}"))
             else:
-                self.stdout.write(self.style.ERROR(f"Error: {chapter_data['error']}"))
+                self.stdout.write(self.style.SUCCESS(f"Chapter {chapter_number} updated: {chapter.title}"))
+        except ValueError as e:
+            self.stdout.write(self.style.ERROR(f"Error: {str(e)}"))
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Unexpected error: {str(e)}"))
 
-    def get_chapter_data(self, story_name, chapter_number):
+    def get_story_by_name(self, story_name):
+        """
+        Lấy thông tin Story từ database theo tên.
+        """
         try:
-            # Tìm kiếm Story
-            story = Story.objects.get(title=story_name)
+            return Story.objects.get(title=story_name)
         except Story.DoesNotExist:
-            return {'exists': False, 'error': f"Story '{story_name}' does not exist"}
+            raise ValueError(f"Story '{story_name}' does not exist")
 
-        # Lấy nội dung chapter từ URL
-        chapter_url = f"{CRAWL_URL}/{story_name}/chuong-{chapter_number}"
-        chapter_content, chapter_title = self.get_chapter_content(chapter_url)
-
-        if not chapter_content:
-            return {'exists': False, 'error': 'Failed to fetch chapter content'}
-
-        # Cập nhật hoặc tạo mới Chapter
-        chapter, created = Chapter.objects.get_or_create(
-            story_id=story.id,
-            chapter_number=chapter_number,
-            defaults={
-                'title': chapter_title,
-                'content': chapter_content,
-                'views': 0,
-                'updated_at': timezone.now()
-            }
-        )
-        if not created:  # Nếu Chapter đã tồn tại, chỉ cập nhật các trường cần thiết
-            chapter.title = chapter_title
-            chapter.content = chapter_content
-            chapter.updated_at = timezone.now()
-            chapter.save()
-
-        return {'exists': True, 'chapter': f"{chapter.title} (Chapter {chapter_number})"}
-
-    def get_chapter_content(self, chapter_url):
-        try:
-            response = requests.get(chapter_url, timeout=10)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
+    def fetch_chapter_content(self, chapter_url):
+        """
+        Gửi request tới URL để lấy nội dung chương.
+        """
+        vpn_enabled = self.get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
+        while True:
+            try:
+                response = requests.get(chapter_url, timeout=10)
+                if response.status_code == 503:
+                    logger.warning("503 Service Unavailable - Toggling VPN...")
+                    logger.info(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}")
+                    vpn_enabled = self.toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
+                    continue  # Thử lại request sau khi bật/tắt VPN
+                response.raise_for_status()
+                break  # Nếu request thành công, thoát khỏi vòng lặp
+            except requests.RequestException as e:
+                raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
 
         soup = BeautifulSoup(response.text, 'html.parser')
         chapter_title = None
@@ -84,4 +84,88 @@ class Command(BaseCommand):
         except AttributeError:
             pass  # Nếu không tìm thấy tiêu đề hoặc nội dung, trả về None
 
-        return chapter_content, chapter_title
+        return chapter_title, chapter_content
+
+    def save_or_update_chapter(self, story_id, chapter_number, title, content):
+        """
+        Lưu hoặc cập nhật chapter trong database.
+        """
+        chapter, created = Chapter.objects.get_or_create(
+            story_id=story_id,
+            chapter_number=chapter_number,
+            defaults={
+                'title': title,
+                'content': content,
+                'views': 0,
+                'updated_at': timezone.now()
+            }
+        )
+        if not created:  # Nếu chapter đã tồn tại, cập nhật thông tin
+            chapter.title = title
+            chapter.content = content
+            chapter.updated_at = timezone.now()
+            chapter.save()
+
+        return chapter, created
+
+    def get_vpn_status(self, vpn_name):
+        """
+        Kiểm tra trạng thái của VPN.
+        Args:
+            vpn_name (str): Tên của VPN cần kiểm tra.
+
+        Returns:
+            bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
+        """
+        try:
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            # Kiểm tra nếu VPN đang hoạt động
+            active_connections = result.stdout.strip().split('\n')
+            for connection in active_connections:
+                name, conn_type, state = connection.split(':')
+                if name == vpn_name and conn_type == "vpn" and state == "activated":
+                    logger.info(f"VPN {vpn_name} đang được bật.")
+                    return True
+            logger.info(f"VPN {vpn_name} đang tắt.")
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
+            raise
+
+    def toggle_vpn(self, vpn_enabled, vpn_name=None):
+        """
+        Bật hoặc tắt VPN.
+        Args:
+            vpn_enabled (bool): Trạng thái hiện tại của VPN.
+            vpn_name (str, optional): Tên VPN. Mặc định lấy từ biến môi trường VPN_NAME.
+
+        Returns:
+            bool: Trạng thái VPN sau khi thay đổi.
+        """
+        vpn_name = vpn_name or os.getenv('VPN_NAME')
+        if not vpn_name:
+            raise ValueError("VPN_NAME environment variable is not set.")
+
+        try:
+            # current_status = get_vpn_status(vpn_name)
+            # if vpn_enabled == current_status:
+            #     logger.info(f"VPN {vpn_name} đã ở trạng thái mong muốn ({'Enabled' if vpn_enabled else 'Disabled'}).")
+            #     return vpn_enabled
+
+            if not vpn_enabled:
+                logger.info("Enabling VPN...")
+                subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
+                logger.info(f"VPN {vpn_name} đã được bật.")
+            else:
+                logger.info("Disabling VPN...")
+                subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
+                logger.info(f"VPN {vpn_name} đã được tắt.")
+            return not vpn_enabled
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Lỗi khi bật/tắt VPN: {e}")
+            raise

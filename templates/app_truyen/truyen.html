@@ -89,5 +89,36 @@
         window.location.href = '?page=' + pageNumber;
       }
     </script>
+<script>
+    function checkCrawlStatus() {
+        const storyName = '{{ story_name }}';
+        fetch(`/crawl-status/${storyName}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.crawling) {
+                    // Hiển thị thông báo trong khi crawl
+                    document.getElementById('status-message').innerText = 'Đang tải danh sách chương, vui lòng đợi...';
+                    setTimeout(checkCrawlStatus, 5000); // Kiểm tra lại sau 5 giây
+                } else {
+                    // Làm mới trang khi hoàn tất
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi kiểm tra trạng thái crawl:', error);
+                document.getElementById('status-message').innerText = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        checkCrawlStatus();
+    });
+</script>
+<div id="status-message" style="color: red; font-weight: bold;"></div>
   </div>
 {% endblock %}

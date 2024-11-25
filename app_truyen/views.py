@@ -1,7 +1,14 @@
+import asyncio
+
 from django.core.paginator import Paginator
+from django.db.models import Count
 from django.shortcuts import render
 from django.core.cache import cache
+from django.http import JsonResponse
 from .models import Story, HotStory, Chapter, Genre
+from django.db import DatabaseError
+from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import get_object_or_404
 from .services import (
     get_hot_stories,
     get_story_data,
@@ -10,39 +17,54 @@ from .services import (
     crawl_chapters_for_story,
     get_stories_by_genre,
 )
+import logging
+logger = logging.getLogger(__name__)
+
+from .tasks import crawl_chapters_async
 
 def home_view(request):
     danh_sach_truyen_hot = get_hot_stories()
     return render(request, 'home/home.html', {'danh_sach_truyen_hot': danh_sach_truyen_hot})
 
 
+# Trạng thái crawl lưu trong cache
+CRAWL_STATUS_KEY = "crawl_status_{story_name}"
+
+
+
 def story_view(request, story_name):
     try:
-        # Tìm trong cache trước khi truy vấn database
-        story_cache_key = f"story_data_{story_name}"
-        story = cache.get(story_cache_key)
+        # Sử dụng get_object_or_404 để trả về lỗi 404 nếu không tìm thấy
+        story = get_object_or_404(Story.objects.only('id', 'title'), title=story_name)
 
-        if not story:
-            story = Story.objects.only('id', 'title', 'chapter_number').get(title=story_name)
-            cache.set(story_cache_key, story, timeout=3600)  # Cache trong 1 giờ
+        # Kiểm tra số lượng chương
+        chapter_count = Chapter.objects.filter(story_id=story.id).count()
 
-        # Cache danh sách chương
+        if chapter_count == 0:
+            if cache.get(CRAWL_STATUS_KEY.format(story_name=story_name)):
+                return JsonResponse({'status': 'crawling', 'message': 'Đang tải danh sách chương, vui lòng đợi...'}, status=202)
+
+            cache.set(CRAWL_STATUS_KEY.format(story_name=story_name), True, timeout=600)
+
+            try:
+                asyncio.run(crawl_chapters_async(story_name, 1, 50))
+            except Exception as e:
+                logger.error(f"Lỗi khi gọi crawl_chapters_async: {e}")
+                return JsonResponse({'status': 'error', 'message': 'Lỗi trong quá trình crawl dữ liệu.'}, status=500)
+
+            return JsonResponse({'status': 'crawling', 'message': 'Bắt đầu tải danh sách chương. Trang sẽ tự động làm mới khi hoàn tất.'}, status=202)
+
+        # Nếu đã có chương, trả về dữ liệu
+        chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number')
+        paginator = Paginator(chapters, 50)
         page_number = request.GET.get('page', 1)
+
         try:
             page_number = int(page_number)
-            if page_number < 1:
-                page_number = 1
         except ValueError:
             page_number = 1
 
-        chapter_cache_key = f"chapters_{story_name}_page_{page_number}"
-        page_obj = cache.get(chapter_cache_key)
-
-        if not page_obj:
-            chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number')
-            paginator = Paginator(chapters, 50)  # 50 chapters per page
-            page_obj = paginator.get_page(page_number)
-            cache.set(chapter_cache_key, page_obj, timeout=3600)  # Cache trong 1 giờ
+        page_obj = paginator.get_page(page_number)
 
         context = {
             'story': story,
@@ -50,8 +72,20 @@ def story_view(request, story_name):
             'page_obj': page_obj,
         }
         return render(request, 'app_truyen/truyen.html', context)
-    except Story.DoesNotExist:
-        return render(request, '404.html', {'error': 'Story does not exist'})
+
+    except DatabaseError as db_error:
+        logger.error(f"Lỗi cơ sở dữ liệu: {db_error}")
+        return JsonResponse({'status': 'error', 'message': 'Lỗi hệ thống. Vui lòng thử lại sau.'}, status=500)
+    except Exception as e:
+        logger.error(f"Lỗi không xác định trong story_view: {e}")
+        return JsonResponse({'status': 'error', 'message': 'Đã xảy ra lỗi không xác định.'}, status=500)
+
+
+
+
+def crawl_status_view(request, story_name):
+    status = cache.get(CRAWL_STATUS_KEY.format(story_name=story_name), False)
+    return JsonResponse({'crawling': status})
 
 
 

@@ -82,6 +82,7 @@ def crawl_chapters_for_story(story_name, page_number):
                     defaults={
                         'title': title,
                         'content': content,
+                        'views':10,
                         'updated_at': timezone.now(),
                     }
                 )
@@ -120,6 +121,7 @@ def crawl_chapters(story_title, start_chapter, end_chapter=None):
                         story=story,
                         chapter_number=chapter_number,
                         title=title,
+                        views=10,
                         content=content,
                         updated_at=timezone.now()
                     )

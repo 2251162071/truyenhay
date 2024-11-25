@@ -1,45 +1,63 @@
+import logging
 import re
+import os
+import subprocess
 
 import requests
 from bs4 import BeautifulSoup
-from celery.bin.control import status
 from django.core.management.base import BaseCommand
-from django.template.defaultfilters import title
 from django.utils import timezone
+
 from app_truyen import utils
 from app_truyen.models import Story, Genre, StoryGenre
 from truyenhay.settings import CRAWL_URL
-import logging
+
 logger = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     help = 'Get story information from a given URL and save it to the database'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            'story_url',
+            'story_name',
             type=str,
             help='URL to get story info'
         )
 
     def handle(self, *args, **kwargs):
-        story_url = kwargs['story_url']
-        story_info = self.get_story_info(story_url)
+        story_name = kwargs['story_name']
+        story_info = self.get_story_info(story_name)
         if story_info:
-            self.stdout.write(self.style.SUCCESS(f"Story information: {story_info}"))
+            # self.stdout.write(self.style.SUCCESS("Get story info successfully."))
             self.save_story_to_db(story_info)
         else:
             self.stdout.write(self.style.ERROR("Failed to get story information."))
 
     def get_story_info(self, story_name):
-        try:
-            url = f"{CRAWL_URL}/{story_name}"
-            response = utils.send_request(url)
-            if response.status_code == 404:
-                logger.error(f"[lay_thong_tin_truyen] Có lỗi 404 {response.status_code}")
-                return None
-            soup = BeautifulSoup(response.text, 'html.parser')
+        url = f"{CRAWL_URL}/{story_name}"
+        vpn_enabled = self.get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử VPN ban đầu đang tắt
 
+        while True:
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 503:
+                    # Nếu gặp lỗi 503, bật/tắt VPN và thử lại
+                    self.stdout.write(self.style.WARNING("503 Service Unavailable - Toggling VPN..."))
+                    vpn_enabled = self.toggle_vpn(vpn_enabled)
+                    continue  # Thử lại request sau khi bật/tắt VPN
+                elif response.status_code == 404:
+                    logger.error(f"[lay_thong_tin_truyen] Có lỗi 404 {response.status_code}")
+                    return None
+                response.raise_for_status()  # Nếu không có lỗi, thoát khỏi vòng lặp
+                break
+            except requests.RequestException as e:
+                logger.error(f"Lỗi khi lấy thông tin truyện từ {url}: {e}", 'red')
+                return None
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        try:
             title_full = self.get_title_full(soup)
             author = self.get_author(soup)
             genre = self.get_genre(soup)
@@ -64,8 +82,8 @@ class Command(BaseCommand):
                 "genre": genre,
             }
             return story_info
-        except requests.RequestException as e:
-            logger.error(f"Lỗi khi lấy thông tin truyện từ {url}: {e}", 'red')
+        except Exception as e:
+            logger.error(f"Lỗi khi xử lý nội dung từ URL {url}: {e}", 'red')
             return None
 
     def get_title(self, url):
@@ -115,6 +133,7 @@ class Command(BaseCommand):
             pagination = soup.find('ul', class_='pagination')
             # Regex để tìm số x trong định dạng "chuong-x"
             pattern = rf'{CRAWL_URL}/{story_name}/chuong-(\d+)'
+            pattern2 = rf'{CRAWL_URL}/{story_name}/trang-(\d+)/#list-chapter'
             numbers = []
             if pagination is not None:
                 # Tìm tất cả các thẻ li bên trong ul, rồi lặp qua từng thẻ li để tìm thẻ a có nội dung "Cuối"
@@ -124,6 +143,13 @@ class Command(BaseCommand):
                     if a_tag and "Cuối" in a_tag.get_text():
                         link_cuoi = a_tag['href']
                         break  # Dừng lại nếu đã tìm thấy
+                    else:
+                        # Tim the a phu hop pattern2 va lay ra href
+                        match = re.search(pattern2, a_tag['href'])
+                        if match:
+                            link_cuoi = a_tag['href']
+
+
                 # Gửi request đến link đã tìm được
                 response = requests.get(link_cuoi)
                 response.raise_for_status()  # Kiểm tra lỗi kết nối
@@ -197,3 +223,65 @@ class Command(BaseCommand):
         genre = Genre.objects.filter(name_full=story_info['genre']).first()
         if genre:
             StoryGenre.objects.get_or_create(story_id=story.id, genre_id=genre.id)
+
+    def get_vpn_status(self, vpn_name):
+        """
+        Kiểm tra trạng thái của VPN.
+        Args:
+            vpn_name (str): Tên của VPN cần kiểm tra.
+
+        Returns:
+            bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
+        """
+        try:
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            # Kiểm tra nếu VPN đang hoạt động
+            active_connections = result.stdout.strip().split('\n')
+            for connection in active_connections:
+                name, conn_type, state = connection.split(':')
+                if name == vpn_name and conn_type == "vpn" and state == "activated":
+                    logger.info(f"VPN {vpn_name} đang được bật.")
+                    return True
+            logger.info(f"VPN {vpn_name} đang tắt.")
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
+            raise
+
+    def toggle_vpn(self, vpn_enabled, vpn_name=None):
+        """
+        Bật hoặc tắt VPN.
+        Args:
+            vpn_enabled (bool): Trạng thái hiện tại của VPN.
+            vpn_name (str, optional): Tên VPN. Mặc định lấy từ biến môi trường VPN_NAME.
+
+        Returns:
+            bool: Trạng thái VPN sau khi thay đổi.
+        """
+        vpn_name = vpn_name or os.getenv('VPN_NAME')
+        if not vpn_name:
+            raise ValueError("VPN_NAME environment variable is not set.")
+
+        try:
+            # current_status = get_vpn_status(vpn_name)
+            # if vpn_enabled == current_status:
+            #     logger.info(f"VPN {vpn_name} đã ở trạng thái mong muốn ({'Enabled' if vpn_enabled else 'Disabled'}).")
+            #     return vpn_enabled
+
+            if not vpn_enabled:
+                logger.info("Enabling VPN...")
+                subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
+                logger.info(f"VPN {vpn_name} đã được bật.")
+            else:
+                logger.info("Disabling VPN...")
+                subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
+                logger.info(f"VPN {vpn_name} đã được tắt.")
+            return not vpn_enabled
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Lỗi khi bật/tắt VPN: {e}")
+            raise

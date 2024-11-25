@@ -1,9 +1,30 @@
+import os
+
 import requests
 from django.core.management.base import BaseCommand
 from app_truyen.models import Story, Chapter
 from truyenhay.settings import CRAWL_URL
 from django.utils import timezone
 from bs4 import BeautifulSoup
+from app_truyen.vpn_utils import toggle_vpn, get_vpn_status
+
+
+class Command(BaseCommand):
+    help = "A sample command using toggle_vpn"
+
+    def handle(self, *args, **kwargs):
+        vpn_enabled = False  # Trạng thái VPN ban đầu
+        self.stdout.write("Starting VPN toggle process...")
+
+        try:
+            vpn_enabled = toggle_vpn(vpn_enabled)  # Bật VPN
+            self.stdout.write(f"VPN trạng thái hiện tại: {'Enabled' if vpn_enabled else 'Disabled'}")
+
+            # Thực hiện logic tiếp theo...
+
+            vpn_enabled = toggle_vpn(vpn_enabled)  # Tắt VPN
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"Lỗi trong quá trình xử lý VPN: {str(e)}"))
 
 
 class Command(BaseCommand):
@@ -97,11 +118,21 @@ class Command(BaseCommand):
         return {'exists': True, 'chapter': f"{chapter.title} (Chapter {chapter_number})"}
 
     def get_chapter_content(self, chapter_url):
-        try:
-            response = requests.get(chapter_url, timeout=10)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
+        vpn_enabled = get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
+
+        while True:
+            try:
+                response = requests.get(chapter_url, timeout=10)
+                if response.status_code == 503:
+                    self.stdout.write(self.style.WARNING("503 Service Unavailable - Toggling VPN..."))
+
+                    self.stdout.write(self.style.INFO(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}"))
+                    vpn_enabled = toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
+                    continue  # Thử lại request sau khi bật/tắt VPN
+                response.raise_for_status()
+                break  # Nếu request thành công, thoát khỏi vòng lặp
+            except requests.RequestException as e:
+                raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
 
         soup = BeautifulSoup(response.text, 'html.parser')
         chapter_title = None

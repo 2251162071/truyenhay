@@ -43,3 +43,75 @@ def get_chapter_content(chapter_url):
     except Exception as e:
         logger.error(f"Unexpected error processing {chapter_url}: {str(e)}")
         return None, None
+
+
+def send_request(url):
+    """
+    Gửi request đến URL và trả về response.
+
+    Args:
+        url (str): URL cần gửi request.
+        'https://example.com/'
+
+    Returns:
+        requests.models.Response: Response từ request.
+
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Kiểm tra lỗi HTTP
+        # print(Fore.GREEN + f"Gửi request thành công: {url}")
+        logger.error(f"Gửi request thành công: {url}")
+        return response
+    except requests.RequestException as e:
+        # print(Fore.RED + f"Có lỗi khi gửi request: {e}")
+        logger.error(f"Có lỗi khi gửi request: {e}")
+        return None
+
+
+# VPN Service
+import subprocess
+import os
+
+def setup_vpn():
+    """
+    Thiết lập VPN mới trong Network Manager.
+    """
+    try:
+        # Thêm kết nối VPN với Network Manager
+        subprocess.run([
+            "nmcli", "connection", "add",
+            "type", "vpn",
+            "vpn-type", "l2tp",
+            "con-name", os.getenv('VPN_NAME'),
+            "ifname", "--",
+            "connection.autoconnect", "no",
+            f"vpn.data", f"gateway={os.getenv('VPN_SERVER')},user={os.getenv('VPN_USERNAME')}"
+        ], check=True)
+
+        # Cấu hình username và password
+        subprocess.run([
+            "nmcli", "connection", "modify", os.getenv('VPN_NAME'),
+            f"vpn.secrets", f"password={os.getenv('VPN_PASSWORD')}"
+        ], check=True)
+
+        print(f"VPN {os.getenv('VPN_NAME')} thiết lập thành công!")
+    except subprocess.CalledProcessError as e:
+        print(f"Lỗi thiết lập VPN: {e}")
+
+def toggle_vpn(vpn_name, action):
+    """
+    Bật hoặc tắt VPN.
+    action: 'up' để bật, 'down' để tắt.
+    """
+    try:
+        if action == "up":
+            subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
+            print(f"VPN {vpn_name} đã được bật.")
+        elif action == "down":
+            subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
+            print(f"VPN {vpn_name} đã được tắt.")
+        else:
+            print("Hành động không hợp lệ. Chỉ chấp nhận 'up' hoặc 'down'.")
+    except subprocess.CalledProcessError as e:
+        print(f"Lỗi khi {action} VPN: {e}")
