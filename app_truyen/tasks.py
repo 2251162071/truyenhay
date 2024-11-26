@@ -95,14 +95,11 @@ async def download_noi_dung_chuong(link_chuong):
 
 
 
-# Celery tasks
-from celery import shared_task
 from app_truyen.models import Story, Chapter
 from bs4 import BeautifulSoup
 import requests
 from django.utils import timezone
 
-@shared_task
 def fetch_chapter(story_name, chapter_number, crawl_url):
     try:
         story = Story.objects.get(title=story_name)
