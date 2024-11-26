@@ -152,24 +152,24 @@ INSTALLED_APPS += ['django_celery_results']
 
 
 # Ensure the log directory exists
-log_dir = Path(BASE_DIR) / 'log'
-log_dir.mkdir(parents=True, exist_ok=True)
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': log_dir / 'logfile.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
+# log_dir = Path(BASE_DIR) / 'log'
+# log_dir.mkdir(parents=True, exist_ok=True)
+#
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': log_dir / 'logfile.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }

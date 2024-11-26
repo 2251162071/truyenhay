@@ -17,9 +17,9 @@ class Command(BaseCommand):
         # Neu chapter_number bang 0 thi goi get_story_info
         for story in stories:
             if story['chapter_number'] == 0:
-                self.stdout.write(f"Processing story '{story['title']}'...")
+                # self.stdout.write(f"Processing story '{story['title']}'...")
                 try:
                     call_command('get_story_info', story['title'])
-                    self.stdout.write(self.style.SUCCESS(f"Successfully processed story '{story['title']}'."))
+                    # self.stdout.write(self.style.SUCCESS(f"Successfully processed story '{story['title']}'."))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f"Error processing story '{story['title']}': {e}"))

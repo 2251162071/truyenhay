@@ -1,0 +1,124 @@
+{% extends "base.html" %} 
+{% block title %} 
+  {{ ten_truyen }} 
+{% endblock %} 
+{% block content %}
+  <div class="mt-4">
+    <!-- Thông tin truyện -->
+
+    <!-- Title -->
+    <h2 class="text-center mb-4">Danh Sách Chương</h2>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation example" class="mt-4">
+      <div class="d-flex justify-content-center align-items-center">
+        <ul class="pagination mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a></li>
+          {% endif %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
+          </li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+              cùng &raquo;</a></li>
+          {% endif %}
+        </ul>
+        <!-- Go to Page -->
+        <div class="input-group ml-3" style="max-width: 200px;">
+          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+  
+    <!-- Chapter list -->
+    <div class="row mt-4">
+      {% for column in columns %}
+      <div class="col-md-6">
+        <ul class="list-group">
+          {% for truyen in column %}
+          <li class="list-group-item">
+            <a href="{% url 'chapter_detail' story_name=story_name chapter_number=forloop.counter %}">{{ truyen.chapter_title }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation example" class="mt-4">
+      <div class="d-flex justify-content-center align-items-center">
+        <ul class="pagination mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a></li>
+          {% endif %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
+          </li>
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+              cùng &raquo;</a></li>
+          {% endif %}
+        </ul>
+        <!-- Go to Page -->
+        <div class="input-group ml-3" style="max-width: 200px;">
+          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+          </div>
+        </div>
+      </div>
+    </nav>
+    
+    <script>
+      function goToPage() {
+        var pageInput = document.getElementById('pageInput').value;
+        var pageNumber = parseInt(pageInput);
+        var maxPage = '{{ page_obj.paginator.num_pages }}';
+
+        if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > maxPage) {
+          pageNumber = 1;
+        }
+
+        window.location.href = '?page=' + pageNumber;
+      }
+    </script>
+<script>
+    function checkCrawlStatus() {
+        const storyName = '{{ story_name }}';
+        fetch(`/crawl-status/${storyName}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.crawling) {
+                    // Hiển thị thông báo trong khi crawl
+                    document.getElementById('status-message').innerText = 'Đang tải danh sách chương, vui lòng đợi...';
+                    setTimeout(checkCrawlStatus, 5000); // Kiểm tra lại sau 5 giây
+                } else {
+                    // Làm mới trang khi hoàn tất
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi kiểm tra trạng thái crawl:', error);
+                document.getElementById('status-message').innerText = 'Có lỗi xảy ra. Vui lòng thử lại.';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        checkCrawlStatus();
+    });
+</script>
+<div id="status-message" style="color: red; font-weight: bold;"></div>
+  </div>
+{% endblock %}

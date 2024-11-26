@@ -55,7 +55,7 @@ def story_view(request, story_name):
             return JsonResponse({'status': 'crawling', 'message': 'Bắt đầu tải danh sách chương. Trang sẽ tự động làm mới khi hoàn tất.'}, status=202)
 
         # Nếu đã có chương, trả về dữ liệu
-        chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number')
+        chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number').order_by('chapter_number')
         paginator = Paginator(chapters, 50)
         page_number = request.GET.get('page', 1)
 

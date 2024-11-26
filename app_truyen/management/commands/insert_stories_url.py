@@ -347,8 +347,9 @@ class Command(BaseCommand):
             pagination = soup.find('ul', class_='pagination')
             # Regex để tìm số x trong định dạng "chuong-x"
             pattern = rf'{CRAWL_URL}/{story_name}/chuong-(\d+)'
-            pattern2 = rf'{CRAWL_URL}/{story_name}/trang-(\d+)/#list-chapter'
+            pattern2 = rf'{CRAWL_URL}/{story_name}/quyen-(\d+)-chuong-(\d+)'  # Định dạng "quyen-x-chuong-y"
             numbers = []
+            page_numbers = []
             if pagination is not None:
                 # Tìm tất cả các thẻ li bên trong ul, rồi lặp qua từng thẻ li để tìm thẻ a có nội dung "Cuối"
                 link_cuoi = None
@@ -357,11 +358,14 @@ class Command(BaseCommand):
                     if a_tag and "Cuối" in a_tag.get_text():
                         link_cuoi = a_tag['href']
                         break  # Dừng lại nếu đã tìm thấy
-                    else:
-                        # Tim the a phu hop pattern2 va lay ra href
-                        match = re.search(pattern2, a_tag['href'])
-                        if match:
-                            link_cuoi = a_tag['href']
+                if link_cuoi is None:
+                    for li in pagination.find_all('li'):
+                        a_tag = li.find('a')
+                        if a_tag:
+                            if a_tag.get_text().isnumeric():
+                                page_numbers.append(int(a_tag.get_text()))
+                    last_page = max(page_numbers)
+                    link_cuoi = f'{CRAWL_URL}/{story_name}/trang-{last_page}/#list-chapter'
 
 
                 # Gửi request đến link đã tìm được
@@ -377,12 +381,26 @@ class Command(BaseCommand):
                     if match:
                         number = int(match.group(1))  # Lấy số x và chuyển thành integer
                         numbers.append(number)
+                    else:
+                        match = re.search(pattern2, link['href'])
+                        if match:
+                            pattern3 = r'chuong-(\d+)'
+                            match3 = re.search(pattern3, link['href'])
+                            number = int(match3.group(1))
+                            numbers.append(number)
             else:
                 for link in soup.find_all('a', href=True):
                     match = re.search(pattern, link['href'])
                     if match:
                         number = int(match.group(1))  # Lấy số x và chuyển thành integer
                         numbers.append(number)
+                    else:
+                        match = re.search(pattern2, link['href'])
+                        if match:
+                            pattern3 = r'chuong-(\d+)'
+                            match3 = re.search(pattern3, link['href'])
+                            number = int(match3.group(1))
+                            numbers.append(number)
 
             # Tìm số lớn nhất
             so_chuong = max(numbers) if numbers else 0
