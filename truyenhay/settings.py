@@ -140,13 +140,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'django-db'
 
-INSTALLED_APPS += ['django_celery_results']
 
 
 # Logging settings
