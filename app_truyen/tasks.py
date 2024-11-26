@@ -9,6 +9,7 @@ import requests
 from .models import Story, Chapter
 from dotenv import load_dotenv
 from asgiref.sync import sync_to_async
+from .utils import fetch_chapter_content, get_vpn_status, toggle_vpn
 
 import logging
 logger = logging.getLogger(__name__)
@@ -46,62 +47,23 @@ async def fetch_content(url):
             return None
 
 async def crawl_chapters_async(story_title, start_chapter, end_chapter):
-    start_chapter = 3
-    end_chapter = 12
     try:
         # Lấy thông tin truyện
         story = await sync_to_async(Story.objects.get)(title=story_title)
     except Story.DoesNotExist:
         logger.error(f"Truyện '{story_title}' không tồn tại.")
+        print(f"Truyện '{story_title}' không tồn tại.")
         return
     except Exception as e:
         logger.error(f"Lỗi khi truy vấn Story: {e}")
+        print(f'Lỗi khi truy vấn Story: {e}')
         return
 
-    tasks = []
     for chapter_number in range(start_chapter, end_chapter + 1):
         chapter_url = f"{CRAWL_URL}/{story_title}/chuong-{chapter_number}"
-        tasks.append(fetch_content(chapter_url))
+        fetch_chapter_content(chapter_url)
 
-    try:
-        results = await asyncio.gather(*tasks) #TODO: Doan nay da lay duoc noi dung chuong truyen
-        # Ensure the directory exists
-        os.makedirs(story_title, exist_ok=True)
-        # save results to html file
-        for index, result in enumerate(results, start=1):
-            if result is not None:
-                file_name = f'{story_title}/test_{index}.html'
-                # Format the HTML content
-                # formatted_html = result.prettify()
-                with open(file_name, 'w', encoding='utf-8') as f:
-                    f.write(result)
 
-    except Exception as e:
-        logger.error(f"Lỗi khi tải dữ liệu từ các URL: {e}")
-        return
-
-    # chapters_to_create = []
-    # for chapter_number, content in enumerate(results, start=start_chapter):
-    #     try:
-    #         chapter_content, chapter_title = get_chapter_content(content)
-    #         if chapter_content:
-    #             chapters_to_create.append(
-    #                 Chapter(
-    #                     story=story,
-    #                     chapter_number=chapter_number,
-    #                     title=chapter_title,
-    #                     content=chapter_content
-    #                 )
-    #             )
-    #     except Exception as e:
-    #         logger.error(f"Lỗi khi xử lý nội dung chương {chapter_number}: {e}")
-    #         continue
-
-    # try:
-    #     if chapters_to_create:
-    #         await sync_to_async(Chapter.objects.bulk_create)(chapters_to_create, ignore_conflicts=True)
-    except Exception as e:
-        logger.error(f"Lỗi khi lưu dữ liệu chương: {e}")
 
 async def download_noi_dung_chuong(link_chuong):
     """

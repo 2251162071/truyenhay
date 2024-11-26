@@ -1,0 +1,38 @@
+Các bước cụ thể để export/import:
+Export từ nơi nguồn
+
+    Dùng pg_dump để export database:
+
+pg_dump -U huandt -h localhost -d truyenhay -F c -f truyenhay.dump
+
+    -F c: Xuất theo định dạng custom.
+    -f output.dump: Tên file dump.
+
+Chỉ export schema (nếu cần):
+
+pg_dump -U username -h hostname -d dbname --schema-only -f schema.sql
+
+Chỉ export data (nếu cần):
+
+    pg_dump -U username -h hostname -d dbname --data-only -f data.sql
+
+Import vào nơi đích
+
+    Tạo database mới:
+
+CREATE DATABASE new_dbname WITH OWNER new_owner ENCODING 'UTF8';
+
+Dùng pg_restore để import file dump:
+
+pg_restore -U tsdbadmin -h ih2twc30fu.lpeuavkzt8.tsdb.cloud.timescale.com -p 30864 -d tsdb -F c truyenhay.dump
+
+Nếu dùng file SQL:
+
+    psql -U username -h hostname -d new_dbname -f schema.sql
+    psql -U username -h hostname -d new_dbname -f data.sql
+
+Lưu ý:
+
+    Đảm bảo phiên bản PostgreSQL tại nơi nguồn và nơi đích tương thích. Nếu không, có thể cần điều chỉnh file dump.
+    Kiểm tra và cấu hình lại các kết nối ứng dụng (như URL kết nối) sau khi di chuyển database.
+    Sao lưu đầy đủ dữ liệu trước khi thực hiện import/export để tránh mất mát.

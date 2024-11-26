@@ -41,10 +41,10 @@ def story_view(request, story_name):
         chapter_count = Chapter.objects.filter(story_id=story.id).count()
 
         if chapter_count == 0:
-            if cache.get(CRAWL_STATUS_KEY.format(story_name=story_name)):
-                return JsonResponse({'status': 'crawling', 'message': 'Đang tải danh sách chương, vui lòng đợi...'}, status=202)
-
-            cache.set(CRAWL_STATUS_KEY.format(story_name=story_name), True, timeout=600)
+            # if cache.get(CRAWL_STATUS_KEY.format(story_name=story_name)):
+            #     return JsonResponse({'status': 'crawling', 'message': 'Đang tải danh sách chương, vui lòng đợi...'}, status=202)
+            #
+            # cache.set(CRAWL_STATUS_KEY.format(story_name=story_name), True, timeout=600)
 
             try:
                 asyncio.run(crawl_chapters_async(story_name, 1, 50))
@@ -95,7 +95,21 @@ def chapter_view(request, story_name, chapter_number):
     if not chapter_data['exists']:
         return render(request, '404.html', {'error': chapter_data['error']})
 
-    return render(request, 'app_truyen/chuong.html', {'chapter': chapter_data})
+    story = get_object_or_404(Story, title=story_name)
+    current_chapter = get_object_or_404(Chapter, story=story, chapter_number=chapter_number)
+
+    # Get previous and next chapters
+    previous_chapter = Chapter.objects.filter(story=story, chapter_number__lt=chapter_number).order_by('-chapter_number').first()
+    next_chapter = Chapter.objects.filter(story=story, chapter_number__gt=chapter_number).order_by('chapter_number').first()
+
+    context = {
+        'story': story_name,
+        'chapter': chapter_data,
+        'previous_chapter': previous_chapter,
+        'next_chapter': next_chapter,
+    }
+
+    return render(request, 'app_truyen/chuong.html', context)
 
 def genre_view(request, the_loai, so_trang):
     try:
