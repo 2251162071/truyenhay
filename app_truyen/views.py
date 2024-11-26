@@ -70,6 +70,11 @@ def story_view(request, story_name):
             'story': story,
             'chapters': page_obj.object_list,
             'page_obj': page_obj,
+            'has_prev': page_obj.has_previous(),
+            'has_next': page_obj.has_next(),
+            'prev_page': page_obj.previous_page_number() if page_obj.has_previous() else None,
+            'next_page': page_obj.next_page_number() if page_obj.has_next() else None,
+            'max_page': paginator.num_pages,
         }
         return render(request, 'app_truyen/truyen.html', context)
 

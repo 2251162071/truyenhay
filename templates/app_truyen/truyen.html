@@ -10,30 +10,29 @@
     <h2 class="text-center mb-4">Danh Sách Chương</h2>
 
     <!-- Pagination -->
-    <nav aria-label="Page navigation example" class="mt-4">
-      <div class="d-flex justify-content-center align-items-center">
-        <ul class="pagination mb-0">
-          {% if page_obj.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a></li>
-          {% endif %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
-          {% if page_obj.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
-          </li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
-              cùng &raquo;</a></li>
-          {% endif %}
-        </ul>
-        <!-- Go to Page -->
-        <div class="input-group ml-3" style="max-width: 200px;">
-          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
-          </div>
-        </div>
-      </div>
-    </nav>
+{#    <nav aria-label="Page navigation example" class="mt-4">#}
+{#      <div class="d-flex justify-content-center align-items-center">#}
+{#        <ul class="pagination mb-0">#}
+{#          {% if has_prev %}#}
+{#          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ prev_page}}">Trước</a></li>#}
+{#          {% endif %}#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>#}
+{#          {% if page_obj.has_next %}#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>#}
+{#          </li>#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối#}
+{#              cùng &raquo;</a></li>#}
+{#          {% endif %}#}
+{#        </ul>#}
+{#        <div class="input-group ml-3" style="max-width: 200px;">#}
+{#          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">#}
+{#          <div class="input-group-append">#}
+{#            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>#}
+{#          </div>#}
+{#        </div>#}
+{#      </div>#}
+{#    </nav>#}
   
     <!-- Chapter list -->
     <div class="row mt-4">
@@ -49,30 +48,29 @@
     </div>
 
     <!-- Pagination -->
-    <nav aria-label="Page navigation example" class="mt-4">
-      <div class="d-flex justify-content-center align-items-center">
-        <ul class="pagination mb-0">
-          {% if page_obj.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a></li>
-          {% endif %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
-          {% if page_obj.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
-          </li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
-              cùng &raquo;</a></li>
-          {% endif %}
-        </ul>
-        <!-- Go to Page -->
-        <div class="input-group ml-3" style="max-width: 200px;">
-          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
-          </div>
-        </div>
-      </div>
-    </nav>
+{#    <nav aria-label="Page navigation example" class="mt-4">#}
+{#      <div class="d-flex justify-content-center align-items-center">#}
+{#        <ul class="pagination mb-0">#}
+{#          {% if page_obj.has_previous %}#}
+{#          <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a></li>#}
+{#          {% endif %}#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>#}
+{#          {% if page_obj.has_next %}#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>#}
+{#          </li>#}
+{#          <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối#}
+{#              cùng &raquo;</a></li>#}
+{#          {% endif %}#}
+{#        </ul>#}
+{#        <div class="input-group ml-3" style="max-width: 200px;">#}
+{#          <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">#}
+{#          <div class="input-group-append">#}
+{#            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>#}
+{#          </div>#}
+{#        </div>#}
+{#      </div>#}
+{#    </nav>#}
     
     <script>
       function goToPage() {
@@ -87,24 +85,24 @@
         window.location.href = '?page=' + pageNumber;
       }
     </script>
-  <script>
-      function checkCrawlStatus() {
-        fetch("{% url 'crawl_status_view' story_name=story.title %}")
-          .then(response => response.json())
-          .then(data => {
-            if (!data.crawling) {
-              location.reload();
-            } else {
-              setTimeout(checkCrawlStatus, 5000); // Check again after 5 seconds
-            }
-          })
-          .catch(error => console.error('Error checking crawl status:', error));
-      }
-
-      // Start checking crawl status if the page is in crawling state
-      {% if page_obj.object_list|length == 0 %}
-        checkCrawlStatus();
-      {% endif %}
-    </script>
+{#  <script>#}
+{#      function checkCrawlStatus() {#}
+{#        fetch("{% url 'crawl_status_view' story_name=story.title %}")#}
+{#          .then(response => response.json())#}
+{#          .then(data => {#}
+{#            if (!data.crawling) {#}
+{#              location.reload();#}
+{#            } else {#}
+{#              setTimeout(checkCrawlStatus, 5000); // Check again after 5 seconds#}
+{#            }#}
+{#          })#}
+{#          .catch(error => console.error('Error checking crawl status:', error));#}
+{#      }#}
+{##}
+{#      // Start checking crawl status if the page is in crawling state#}
+{#      {% if page_obj.object_list|length == 0 %}#}
+{#        checkCrawlStatus();#}
+{#      {% endif %}#}
+{#    </script>#}
   </div>
 {% endblock %}
