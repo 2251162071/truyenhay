@@ -83,6 +83,11 @@ TEMPLATES = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://chiasekienthuc.me',
+]
+
+
 WSGI_APPLICATION = 'truyenhay.wsgi.application'
 
 

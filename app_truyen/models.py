@@ -17,6 +17,10 @@ class Genre(models.Model):
     def __str__(self):
         return self.name_full
 
+    class Meta:
+        managed = False
+        db_table = 'app_truyen_genre'
+
 class Story(models.Model):
     chapter_number = models.IntegerField(default=0)  # Thêm field chapter_number để lưu số chương của truyện
     title_full = models.CharField(max_length=255, default="noname")  # Tên truyện có dấu, mặc định là "noname"
