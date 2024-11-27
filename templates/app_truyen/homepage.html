@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}
+    {{ ten_truyen }}
+{% endblock %}
+{% block content %}
+    <div class="mt-4">
+        <table class="table table-striped table-dark">
+            <tr>
+                <th>STT</th>
+                <th>URL</th>
+                <th>Số lượt truy cập</th>
+            </tr>
+            {% for view in views %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ view.path }}</td>
+                    <td>{{ view.count }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endblock %}

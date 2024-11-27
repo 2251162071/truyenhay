@@ -7,6 +7,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from .models import Story, HotStory, Chapter, Genre
 from django.db import DatabaseError
+from app_truyen.models import URLViewCount
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from .services import (
@@ -22,13 +23,19 @@ logger = logging.getLogger(__name__)
 
 from .tasks import crawl_chapters_async
 
+# Trạng thái crawl lưu trong cache
+CRAWL_STATUS_KEY = "crawl_status_{story_name}"
+
 def home_view(request):
     danh_sach_truyen_hot = get_hot_stories()
     return render(request, 'home/home.html', {'danh_sach_truyen_hot': danh_sach_truyen_hot})
 
 
-# Trạng thái crawl lưu trong cache
-CRAWL_STATUS_KEY = "crawl_status_{story_name}"
+
+
+def homepage(request):
+    views = URLViewCount.objects.all()
+    return render(request, 'app_truyen/homepage.html', {'views': views})
 
 
 

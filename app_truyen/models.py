@@ -71,3 +71,11 @@ class HotStory(models.Model):
 class NewUpdatedStory(models.Model):
     story = models.ForeignKey(Story, on_delete=models.CASCADE)
     added_at = models.DateTimeField()
+
+
+class URLViewCount(models.Model):
+    path = models.CharField(max_length=255, unique=True)  # Đường dẫn của URL
+    count = models.PositiveIntegerField(default=0)  # Số lượt xem
+
+    def __str__(self):
+        return f"{self.path} - {self.count} views"
