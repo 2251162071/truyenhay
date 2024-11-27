@@ -27,11 +27,11 @@ class Command(BaseCommand):
                 continue
             chapter_range = f"1-{chapter_number}"
 
-            # self.stdout.write(f"Processing story '{title}' with chapter range '{chapter_range}'...")
+            self.stdout.write(self.style.SUCCESS(f"Processing story '{title}' with chapter range '{chapter_range}'..."))
 
             try:
                 # Gọi child command
                 call_command('get_missing_chapters', title, '--chapter_range', chapter_range)
-                # self.stdout.write(self.style.SUCCESS(f"Successfully processed story '{title}'."))
+                self.stdout.write(self.style.SUCCESS(f"Successfully processed story '{title}'."))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"Error processing story '{title}': {e}"))

@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.db import models
 from unidecode import unidecode
+from django.contrib.auth.models import User
 # Create your models here.
 
 class Genre(models.Model):
@@ -79,3 +80,14 @@ class URLViewCount(models.Model):
 
     def __str__(self):
         return f"{self.path} - {self.count} views"
+
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    page_url = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.user.username if self.user else 'Anonymous'}: {self.content[:20]}"

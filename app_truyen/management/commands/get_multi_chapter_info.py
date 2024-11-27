@@ -125,7 +125,6 @@ class Command(BaseCommand):
                 response = requests.get(chapter_url, timeout=10)
                 if response.status_code == 503:
                     self.stdout.write(self.style.WARNING("503 Service Unavailable - Toggling VPN..."))
-
                     self.stdout.write(self.style.INFO(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}"))
                     vpn_enabled = toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
                     continue  # Thử lại request sau khi bật/tắt VPN
@@ -139,9 +138,20 @@ class Command(BaseCommand):
         chapter_content = None
 
         try:
-            chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
+            if soup.find('h2'):
+                if soup.find('h2').find('a', class_='chapter-title'):
+                    chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
+            if chapter_title is None:
+                chapter_title = 'Untitled Chapter'
+                self.stdout.write(self.style.WARNING("Chapter title not found"))
+
             chapter_content_div = soup.find('div', class_='chapter-c')
-            chapter_content = chapter_content_div.decode_contents() if chapter_content_div else None
+            if chapter_content_div:
+                chapter_content = chapter_content_div.decode_contents() if chapter_content_div else None
+
+            if chapter_content is None:
+                chapter_content = 'No content found'
+                self.stdout.write(self.style.WARNING("Chapter content not found"))
         except AttributeError:
             pass  # Nếu không tìm thấy tiêu đề hoặc nội dung, trả về None
 

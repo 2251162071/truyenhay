@@ -17,17 +17,37 @@ def get_hot_stories():
     return [
         {
             'title': hot_story.story.title,
+            'title_full': hot_story.story.title_full,
             'author': hot_story.story.author,
             'status': hot_story.story.status,
             'views': hot_story.story.views,
             'description': hot_story.story.description,
             'rating': hot_story.story.rating,
             'image': hot_story.story.image,
+            'image_path': 'images/' + hot_story.story.image,
             'link': f'/{hot_story.story.title}/',
         }
         for hot_story in hot_stories
     ]
 
+def get_recommend_stories():
+    # Find 5 stories with max views
+    recommend_stories = Story.objects.order_by('-views')[:5]
+    return [
+        {
+            'title': story.title,
+            'title_full': story.title_full,
+            'author': story.author,
+            'status': story.status,
+            'views': story.views,
+            'description': story.description,
+            'rating': story.rating,
+            'image': story.image,
+            'image_path': 'images/' + story.image,
+            'link': f'/{story.title}/',
+        }
+        for story in recommend_stories
+    ]
 
 def get_story_data(story_title):
     try:

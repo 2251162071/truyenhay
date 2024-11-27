@@ -61,6 +61,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.ERROR(f"Error with Chapter {chapter_number}: {chapter_data['error']}"))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f"Error with Chapter {chapter_number}: {str(e)}"))
+                    break  # Nếu có lỗi, thoát khỏi vòng lặp
         except ValueError as e:
             self.stdout.write(self.style.ERROR(f"Invalid chapter range: {str(e)} chapter_range: {chapter_range}"))
         except Exception as e:
@@ -88,10 +89,12 @@ class Command(BaseCommand):
 
     def get_chapter_data(self, story_name, chapter_number, story_id):
         chapter_url = f"{CRAWL_URL}/{story_name}/chuong-{chapter_number}"
+        if requests.get(chapter_url).status_code == 404:
+            return {'exists': False, 'error': f"Chapter {chapter_number} from {story_name} not found"}
         chapter_title, chapter_content = self.fetch_chapter_content(chapter_url)
 
         if not chapter_content:
-            return {'exists': False, 'error': 'Failed to fetch chapter content'}
+            return {'exists': False, 'error': f'Failed to fetch chapter content {chapter_url}'}
 
         # Tạo mới Chapter
         chapter, created = Chapter.objects.get_or_create(

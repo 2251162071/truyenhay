@@ -1,24 +1,26 @@
 import asyncio
+import logging
 
-from django.core.paginator import Paginator
-from django.db.models import Count
-from django.shortcuts import render
+from django.conf import settings
 from django.core.cache import cache
-from django.http import JsonResponse
-from .models import Story, HotStory, Chapter, Genre
+from django.core.paginator import Paginator
 from django.db import DatabaseError
-from app_truyen.models import URLViewCount
-from django.core.exceptions import ObjectDoesNotExist
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import render
+
+from app_truyen.models import URLViewCount
+from .forms import CommentForm
+from .models import Comment
+from .models import Story, Chapter
 from .services import (
     get_hot_stories,
-    get_story_data,
+    get_recommend_stories,
     get_chapter_data,
-    get_chapters_by_story_name,
-    crawl_chapters_for_story,
     get_stories_by_genre,
 )
-import logging
+
 logger = logging.getLogger(__name__)
 
 from .tasks import crawl_chapters_async
@@ -28,7 +30,8 @@ CRAWL_STATUS_KEY = "crawl_status_{story_name}"
 
 def home_view(request):
     danh_sach_truyen_hot = get_hot_stories()
-    return render(request, 'home/home.html', {'danh_sach_truyen_hot': danh_sach_truyen_hot})
+    danh_sach_truyen_de_cu = get_recommend_stories()
+    return render(request, 'home/home.html', {'danh_sach_truyen_hot': danh_sach_truyen_hot, 'danh_sach_truyen_de_cu': danh_sach_truyen_de_cu})
 
 
 
@@ -41,28 +44,31 @@ def homepage(request):
 
 def story_view(request, story_name):
     try:
-        # Sử dụng get_object_or_404 để trả về lỗi 404 nếu không tìm thấy
-        story = get_object_or_404(Story.objects.only('id', 'title'), title=story_name)
+        # Check if the story exists
+        story = get_object_or_404(Story, title=story_name)
 
-        # Kiểm tra số lượng chương
+        # Check the number of chapters in the database
         chapter_count = Chapter.objects.filter(story_id=story.id).count()
 
-        if chapter_count == 0:
+        # If the story has no chapters or the chapter count does not match the story's chapter_number field
+        if chapter_count == 0 or chapter_count < story.chapter_number:
             # if cache.get(CRAWL_STATUS_KEY.format(story_name=story_name)):
-            #     return JsonResponse({'status': 'crawling', 'message': 'Đang tải danh sách chương, vui lòng đợi...'}, status=202)
+            #     return JsonResponse({'status': 'crawling', 'message': 'Loading chapters, please wait...'}, status=202)
             #
             # cache.set(CRAWL_STATUS_KEY.format(story_name=story_name), True, timeout=600)
 
             try:
-                asyncio.run(crawl_chapters_async(story_name, 1, 50))
+                # Crawl missing chapters
+                result = asyncio.run(crawl_chapters_async(story_name, 1, story.chapter_number))
             except Exception as e:
-                logger.error(f"Lỗi khi gọi crawl_chapters_async: {e}")
-                return JsonResponse({'status': 'error', 'message': 'Lỗi trong quá trình crawl dữ liệu.'}, status=500)
+                logger.error(f"Error calling crawl_chapters_async: {e}")
+                return JsonResponse({'status': 'error', 'message': 'Error during data crawling.'}, status=500)
 
-            return JsonResponse({'status': 'crawling', 'message': 'Bắt đầu tải danh sách chương. Trang sẽ tự động làm mới khi hoàn tất.'}, status=202)
+            return render(request, 'app_truyen/truyen.html', {'story': story, 'result': result})
 
-        # Nếu đã có chương, trả về dữ liệu
-        chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number').order_by('chapter_number')
+        # If the story has all chapters, return the data
+        chapters = Chapter.objects.filter(story_id=story.id).only('id', 'title', 'chapter_number').order_by(
+            'chapter_number')
         paginator = Paginator(chapters, 50)
         page_number = request.GET.get('page', 1)
 
@@ -100,12 +106,10 @@ def crawl_status_view(request, story_name):
     return JsonResponse({'crawling': status})
 
 
-
-
 def chapter_view(request, story_name, chapter_number):
-    chapter_data = get_chapter_data(story_name, chapter_number)
-    if not chapter_data['exists']:
-        return render(request, '404.html', {'error': chapter_data['error']})
+    # chapter_data = get_chapter_data(story_name, chapter_number)
+    # if not chapter_data['exists']:
+    #     return render(request, '404.html', {'error': chapter_data['error']})
 
     story = get_object_or_404(Story, title=story_name)
     current_chapter = get_object_or_404(Chapter, story=story, chapter_number=chapter_number)
@@ -116,7 +120,8 @@ def chapter_view(request, story_name, chapter_number):
 
     context = {
         'story': story_name,
-        'chapter': chapter_data,
+        'story_full':story.title_full,
+        'current_chapter': current_chapter,
         'previous_chapter': previous_chapter,
         'next_chapter': next_chapter,
     }
@@ -158,3 +163,23 @@ def genre_view(request, the_loai, so_trang):
     }
 
     return render(request, 'app_truyen/danh_sach_truyen.html', context)
+
+
+
+def comment_view(request):
+    if settings.LOGIN_REQUIRED_FOR_COMMENTS and not request.user.is_authenticated:
+        return redirect('login')  # Redirect to login page if login is required and user is not authenticated
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user if request.user.is_authenticated else None
+            comment.page_url = request.META.get('HTTP_REFERER')
+            comment.save()
+            return redirect(comment.page_url)
+    else:
+        form = CommentForm()
+
+    comments = Comment.objects.filter(page_url=request.META.get('HTTP_REFERER')).order_by('-created_at')
+    return render(request, 'app_truyen/comments.html', {'form': form, 'comments': comments})

@@ -1,0 +1,16 @@
+<div class="comments-section">
+    <h3>Comments</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Add Comment</button>
+    </form>
+    <ul class="comments-list">
+        {% for comment in comments %}
+            <li>
+                <strong>{% if comment.user %}{{ comment.user.username }}{% else %}Anonymous{% endif %}</strong> ({{ comment.created_at }}):<br>
+                {{ comment.content }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>

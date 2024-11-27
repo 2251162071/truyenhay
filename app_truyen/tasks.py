@@ -26,42 +26,71 @@ async def fetch_content(url):
     }
     for attempt in range(retries):
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, headers=headers) as response:
-                    if response.status == 200:
-                        soup = BeautifulSoup(await response.text(), 'html.parser')
-                        chapter_content = soup.find('div', class_='chapter-c')
-                        print(chapter_content)
-                        return chapter_content.get_text(separator='\n', strip=True) if chapter_content else None
-                    elif response.status == 503:
-                        print(f"HTTP 503: Service Unavailable. Attempt {attempt + 1} of {retries}")
-                        if attempt < retries - 1:
-                            time.sleep(delay)  # Chờ trước khi thử lại
-                        else:
-                            return None
-                    else:
-                        logger.error(f"Lỗi HTTP {response.status} khi tải chương {url}")
-                        return None
-        except aiohttp.ClientError as e:
-            logger.error(f"Lỗi khi tải chương {url}: {e}")
-            return None
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+        except requests.RequestException as e:
+            return {'exists': False, 'error': f"Failed to fetch URL {url}: {str(e)}"}
+
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        try:
+            chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
+            chapter_content_div = soup.find('div', class_='chapter-c')
+            chapter_content = chapter_content_div.get_text(separator='\n', strip=True) if chapter_content_div else None
+        except AttributeError:
+            return {'exists': False, 'error': 'Failed to parse chapter content'}
+
+        return {'exists': True, 'title': chapter_title, 'content': chapter_content}
+
+async def fetch_chapter_content_and_title(url):
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
+        chapter_content_div = soup.find('div', class_='chapter-c')
+        chapter_content = chapter_content_div.decode_contents() if chapter_content_div else None
+        return {'exists': True, 'title': chapter_title, 'content': chapter_content}
+    except requests.RequestException as e:
+        return {'exists': False, 'error': f"Failed to fetch URL {url}: {str(e)}"}
+    except AttributeError:
+        return {'exists': False, 'error': 'Failed to parse chapter content'}
+
 
 async def crawl_chapters_async(story_title, start_chapter, end_chapter):
+    result = []
     try:
         # Lấy thông tin truyện
         story = await sync_to_async(Story.objects.get)(title=story_title)
     except Story.DoesNotExist:
         logger.error(f"Truyện '{story_title}' không tồn tại.")
         print(f"Truyện '{story_title}' không tồn tại.")
-        return
+        return result
     except Exception as e:
         logger.error(f"Lỗi khi truy vấn Story: {e}")
         print(f'Lỗi khi truy vấn Story: {e}')
-        return
+        return result
 
     for chapter_number in range(start_chapter, end_chapter + 1):
         chapter_url = f"{CRAWL_URL}/{story_title}/chuong-{chapter_number}"
-        fetch_chapter_content(chapter_url)
+        chapter_data = await fetch_chapter_content_and_title(chapter_url)
+
+        if chapter_data['exists']:
+            chapter, created = await sync_to_async(Chapter.objects.update_or_create)(
+                story=story,
+                chapter_number=chapter_number,
+                defaults={
+                    'title': chapter_data['title'],
+                    'content': chapter_data['content'],
+                    'views': 10,
+                    'updated_at': timezone.now(),
+                }
+            )
+            result.append(chapter)
+        else:
+            logger.error(f"Failed to fetch content for chapter {chapter_number} of story '{story_title}'")
+
+    return result
 
 
 

@@ -1,30 +1,163 @@
 {% extends "base.html" %}
-{% block title %}{{ ten_truyen }}{% endblock %}
+{% load static %}
+{% block title %}{{ story_full }}{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/chuong.css' %}">
+{% endblock %}
 {% block content %}
-  {{ chapter.content|safe }}
+    <div class="pagination-controls">
+        <nav aria-label="Chapter navigation">
+            <ul class="pagination">
+                {% if previous_chapter %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% url 'chapter_detail' story_name=story chapter_number=previous_chapter.chapter_number %}"
+                           id="prev-chapter">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                {% endif %}
 
-  <div class="pagination-controls">
-    {% if previous_chapter %}
-      <a href="{% url 'chapter_detail' story_name=story chapter_number=previous_chapter.chapter_number %}" id="prev-chapter">Previous Chapter</a>
-    {% endif %}
-    {% if next_chapter %}
-      <a href="{% url 'chapter_detail' story_name=story chapter_number=next_chapter.chapter_number %}" id="next-chapter">Next Chapter</a>
-    {% endif %}
-  </div>
+                <li class="page-item disabled">
+                    <span class="page-link">{{ current_chapter.chapter_number }}<span class="sr-only">(current)</span></span>
+                </li>
 
-  <script>
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'ArrowLeft') {
-        const prevLink = document.getElementById('prev-chapter');
-        if (prevLink) {
-          window.location.href = prevLink.href;
+                {% if next_chapter %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% url 'chapter_detail' story_name=story chapter_number=next_chapter.chapter_number %}"
+                           id="next-chapter">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    <div id="chapter-title">
+        <h2>{{ current_chapter.title }}</h2>
+    </div>
+    <div id="chapter-content">
+        {{ current_chapter.content|safe }}
+    </div>
+    <div class="pagination-controls">
+        <nav aria-label="Chapter navigation">
+            <ul class="pagination">
+                {% if previous_chapter %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% url 'chapter_detail' story_name=story chapter_number=previous_chapter.chapter_number %}"
+                           id="prev-chapter">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled">
+                    <span class="page-link">{{ current_chapter.chapter_number }}<span class="sr-only">(current)</span></span>
+                </li>
+
+                {% if next_chapter %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{% url 'chapter_detail' story_name=story chapter_number=next_chapter.chapter_number %}"
+                           id="next-chapter">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <script>
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowLeft') {
+                const prevLink = document.getElementById('prev-chapter');
+                if (prevLink) {
+                    window.location.href = prevLink.href;
+                }
+            } else if (event.key === 'ArrowRight') {
+                const nextLink = document.getElementById('next-chapter');
+                if (nextLink) {
+                    window.location.href = nextLink.href;
+                }
+            }
+        });
+    </script>
+    <script>
+        const storyName = "{{ story }}"; // Tên ngắn gọn cho cache key
+        const storyNameFull = "{{ story_full }}"; // Tên đầy đủ của truyện
+        const chapterName = "{{ chapter.title }}"; // Tên chương hiện tại
+        const link = window.location.href;
+        const chapterNumber = parseInt("{{ chapter.chapter_number }}"); // Số chương hiện tại
+        const currentContent = document.getElementById("chapter-content").innerHTML; // Nội dung chương hiện tại
+
+
+        // Hàm thêm truyện vào danh sách đọc gần nhất
+        function addToReadingList(storyName, chapterName, link) {
+            const maxHistory = 5; // Giới hạn số lượng truyện trong lịch sử
+            let readingList = JSON.parse(localStorage.getItem("readingList")) || [];
+
+            // Kiểm tra nếu truyện đã tồn tại thì xóa nó để thêm lên đầu
+            readingList = readingList.filter(item => item.storyName !== storyName);
+
+            // Thêm truyện mới vào đầu danh sách
+            readingList.unshift({storyName, chapterName, link});
+
+            // Giới hạn danh sách chỉ chứa tối đa 5 truyện
+            if (readingList.length > maxHistory) {
+                readingList.pop();
+            }
+
+            // Lưu danh sách vào localStorage
+            localStorage.setItem("readingList", JSON.stringify(readingList));
         }
-      } else if (event.key === 'ArrowRight') {
-        const nextLink = document.getElementById('next-chapter');
-        if (nextLink) {
-          window.location.href = nextLink.href;
+
+        // Hàm lưu nội dung chương vào cache
+        function saveChapterContent(storyName, chapterNumber, content) {
+            const cacheKey = `${storyName}_chapter_${chapterNumber}`;
+            const chapterData = {
+                content: content,
+                timestamp: Date.now() // Lưu thời gian để kiểm tra tính hợp lệ
+            };
+            localStorage.setItem(cacheKey, JSON.stringify(chapterData));
         }
-      }
-    });
-  </script>
+
+        // Hàm tải nội dung từ cache
+        function loadChapterFromCache(storyName, chapterNumber) {
+            const cacheKey = `${storyName}_chapter_${chapterNumber}`;
+            const cachedData = JSON.parse(localStorage.getItem(cacheKey));
+
+            if (cachedData) {
+                const currentTime = Date.now();
+                const cacheAge = (currentTime - cachedData.timestamp) / (1000 * 60); // Tính tuổi cache theo phút
+
+                // Kiểm tra cache có hợp lệ không (ví dụ: nhỏ hơn 1 ngày)
+                if (cacheAge < 1440) {
+                    return cachedData.content;
+                }
+            }
+            return null; // Cache không hợp lệ hoặc không tồn tại
+        }
+
+        // Nếu nội dung chương hiện tại có trong cache, hiển thị từ cache
+        const cachedContent = loadChapterFromCache(storyName, chapterNumber);
+        if (cachedContent) {
+            document.getElementById("chapter-content").innerHTML = cachedContent;
+        }
+
+        // Lưu nội dung chương hiện tại vào cache
+        saveChapterContent(storyName, chapterNumber, currentContent);
+
+
+    </script>
 {% endblock %}

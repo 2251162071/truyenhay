@@ -12,4 +12,5 @@ urlpatterns = [
     # path('check-status/<str:ten_truyen_str>/chuong-<int:so_chuong_int>/', views.check_story_status_view, name='check_story_status_name'),
     # path('check-status/<str:ten_truyen_str>/', views.check_truyen_status_view, name='check_truyen_status_name'),
     # path('<str:ten_truyen_str>/chuong-<int:so_chuong_int>/', views.chuong_view, name='truyen_chuong_name'),
+    path('comments/', views.comment_view, name='comment_view'),
 ]
