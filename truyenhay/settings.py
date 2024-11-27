@@ -49,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,6 +57,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+AZURE_ACCOUNT_NAME = 'huandao'
+AZURE_ACCOUNT_KEY = '7xEIA0Ql3DZCG/RpTz/AE+oqez/tiexW4OMeUOzAbikN8F1rYEWtBJne/UROY33ejgu2OYqkFvXu+AStiezOXw=='
+AZURE_CONTAINER = 'staticfiles'
+
 
 ROOT_URLCONF = 'truyenhay.urls'
 
