@@ -34,12 +34,12 @@
                             <li class="page-item"><a class="page-link" href="?page={{ prev_page }}">Trước</a></li>
                         {% endif %}
                         <li class="page-item"><a class="page-link"
-                                                 href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
+                                                 href="/{{ story.title }}/trang-{{ page_obj.number }}">{{ page_obj.number }}</a></li>
                         {% if page_obj.has_next %}
                             <li class="page-item"><a class="page-link"
-                                                     href="?page={{ page_obj.next_page_number }}">Sau</a>
+                                                     href="/{{ story.title }}/trang-{{ page_obj.next_page_number }}">Sau</a>
                             </li>
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+                            <li class="page-item"><a class="page-link" href="/{{ story.title }}/trang-{{ page_obj.paginator.num_pages }}">Cuối
                                 cùng &raquo;</a></li>
                         {% endif %}
                     </ul>
@@ -78,9 +78,9 @@
                                                  href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
                         {% if page_obj.has_next %}
                             <li class="page-item"><a class="page-link"
-                                                     href="?page={{ page_obj.next_page_number }}">Sau</a>
+                                                     href="/{{ story.title }}/trang-{{ page_obj.next_page_number }}">Sau</a>
                             </li>
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+                            <li class="page-item"><a class="page-link" href="/{{ story.title }}/trang-{{ page_obj.paginator.num_pages }}">Cuối
                                 cùng &raquo;</a></li>
                         {% endif %}
                     </ul>

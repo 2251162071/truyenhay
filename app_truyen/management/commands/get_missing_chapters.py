@@ -1,5 +1,7 @@
 import requests
 from django.core.management.base import BaseCommand
+
+from app_truyen import utils
 from app_truyen.models import Story, Chapter
 from truyenhay.settings import CRAWL_URL
 from django.utils import timezone
@@ -47,21 +49,15 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"All chapters from {start} to {end} already exist in the database."))
                 return
 
-            # self.stdout.write(f"Missing chapters: {', '.join(map(str, sorted(missing_chapters)))}")
+            self.stdout.write(f"Missing chapters: {', '.join(map(str, sorted(missing_chapters)))}")
 
             for chapter_number in sorted(missing_chapters):
-                # self.stdout.write(f"Processing missing Chapter {chapter_number}...")
-                try:
-                    chapter_data = self.get_chapter_data(story_name, chapter_number, story.id)
-                    # if chapter_data['exists']:
-                    #     self.stdout.write(self.style.SUCCESS(f"Chapter {chapter_number} added: {chapter_data['chapter']}"))
-                    # else:
-                    #     self.stdout.write(self.style.ERROR(f"Error: {chapter_data['error']}"))
-                    if not chapter_data['exists']:
-                        self.stdout.write(self.style.ERROR(f"Error with Chapter {chapter_number}: {chapter_data['error']}"))
-                except Exception as e:
-                    self.stdout.write(self.style.ERROR(f"Error with Chapter {chapter_number}: {str(e)}"))
-                    break  # Nếu có lỗi, thoát khỏi vòng lặp
+                result = utils.crawl_chapter(story_name, chapter_number, CRAWL_URL)
+                if result['exists']:
+                    # self.stdout.write(self.style.SUCCESS(f"Added chapter {result['chapter']}"))
+                    chapter, created = utils.save_or_update_chapter(result['chapter'])
+                else:
+                    self.stdout.write(self.style.ERROR(f"Failed to add chapter {chapter_number}: {result['error']}"))
         except ValueError as e:
             self.stdout.write(self.style.ERROR(f"Invalid chapter range: {str(e)} chapter_range: {chapter_range}"))
         except Exception as e:
@@ -142,19 +138,7 @@ class Command(BaseCommand):
         """
         Gửi request tới URL để lấy nội dung chương.
         """
-        vpn_enabled = self.get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
-        while True:
-            try:
-                response = requests.get(chapter_url, timeout=10)
-                if response.status_code == 503:
-                    logger.warning("503 Service Unavailable - Toggling VPN...")
-                    logger.info(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}")
-                    vpn_enabled = self.toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
-                    continue  # Thử lại request sau khi bật/tắt VPN
-                response.raise_for_status()
-                break  # Nếu request thành công, thoát khỏi vòng lặp
-            except requests.RequestException as e:
-                raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
+
 
         soup = BeautifulSoup(response.text, 'html.parser')
         chapter_title = None

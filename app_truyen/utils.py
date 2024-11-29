@@ -40,7 +40,7 @@ def crawl_chapter(story_name, chapter_number, crawl_url):
 
     chapter = {
         'chapter_number': chapter_number,
-        'story': story,
+        'story_id': story.id,
         'title': chapter_title,
         'content': chapter_content,
         'views': 0,
@@ -100,11 +100,11 @@ def save_or_update_chapter(chapter):
             'updated_at': chapter['updated_at']
         }
     )
-    if chapter:
-        print('Successfully saved chapter:', chapter.title)
 
     if created:
         print(f"Successfully saved chapter: {chapter.title}")
+    else:
+        print(f"Successfully updated chapter: {chapter.title}")
     return chapter, created
 
 

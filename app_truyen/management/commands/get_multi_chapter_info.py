@@ -10,24 +10,6 @@ from app_truyen.vpn_utils import toggle_vpn, get_vpn_status
 
 
 class Command(BaseCommand):
-    help = "A sample command using toggle_vpn"
-
-    def handle(self, *args, **kwargs):
-        vpn_enabled = False  # Trạng thái VPN ban đầu
-        self.stdout.write("Starting VPN toggle process...")
-
-        try:
-            vpn_enabled = toggle_vpn(vpn_enabled)  # Bật VPN
-            self.stdout.write(f"VPN trạng thái hiện tại: {'Enabled' if vpn_enabled else 'Disabled'}")
-
-            # Thực hiện logic tiếp theo...
-
-            vpn_enabled = toggle_vpn(vpn_enabled)  # Tắt VPN
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Lỗi trong quá trình xử lý VPN: {str(e)}"))
-
-
-class Command(BaseCommand):
     help = 'Get chapter data for a given story and chapter numbers'
 
     def add_arguments(self, parser):

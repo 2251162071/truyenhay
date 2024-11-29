@@ -2,6 +2,8 @@ import os
 
 import requests
 from django.core.management.base import BaseCommand
+
+from app_truyen import utils
 from app_truyen.models import Story, Chapter
 from truyenhay.settings import CRAWL_URL
 from django.utils import timezone
@@ -11,7 +13,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
+"""
+Command to get chapter data for a given story and chapter number.
+python manage.py get_chapter_info <story_name> <chapter_number>
+"""
 class Command(BaseCommand):
     help = 'Get chapter data for a given story and chapter number'
 
@@ -59,19 +64,7 @@ class Command(BaseCommand):
         """
         Gửi request tới URL để lấy nội dung chương.
         """
-        vpn_enabled = self.get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
-        while True:
-            try:
-                response = requests.get(chapter_url, timeout=10)
-                if response.status_code == 503:
-                    logger.warning("503 Service Unavailable - Toggling VPN...")
-                    logger.info(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}")
-                    vpn_enabled = self.toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
-                    continue  # Thử lại request sau khi bật/tắt VPN
-                response.raise_for_status()
-                break  # Nếu request thành công, thoát khỏi vòng lặp
-            except requests.RequestException as e:
-                raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
+        response = utils.send_request(chapter_url)
 
         soup = BeautifulSoup(response.text, 'html.parser')
         chapter_title = None

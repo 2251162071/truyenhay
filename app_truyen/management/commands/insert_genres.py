@@ -1,7 +1,10 @@
 from django.core.management.base import BaseCommand
 from app_truyen.models import Genre
 
-
+"""
+Insert genres into the Genre model
+python manage.py insert_genres
+"""
 class Command(BaseCommand):
     help = 'Insert sample genres into the Genre model'
 

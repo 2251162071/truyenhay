@@ -34,7 +34,7 @@ class Story(models.Model):
     genres = models.ManyToManyField(Genre, through='StoryGenre', related_name='stories')
     rating = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'))
     description = models.TextField(null=True, blank=True)
-    image = models.URLField(max_length=500, null=True, blank=True)
+    image = models.URLField(max_length=1000, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.title:  # Chỉ tạo `title` nếu chưa có
