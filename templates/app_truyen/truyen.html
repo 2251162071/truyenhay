@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}
-    {{ ten_truyen }}
+    {{ story.title }}
 {% endblock %}
 {% block styles %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/truyen.css' %}">
@@ -14,7 +14,7 @@
         <h2 class="text-center mb-4">Danh Sách Chương</h2>
         {% if result %}
             <div class="row mt-4">
-                {% for chapter in result %}
+                {% for chapter in chapters %}
                     <div class="col-md-6 mb-3">
                         <div class="card">
                             <div class="card-body">
@@ -25,73 +25,75 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p>No chapters found.</p>
-        {% endif %}
-        <!-- Pagination -->
-        <nav aria-label="Page navigation example" class="mt-4">
-            <div class="d-flex justify-content-center align-items-center">
-                <ul class="pagination mb-0">
-                    {% if has_prev %}
-                        <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ prev_page }}">Trước</a></li>
-                    {% endif %}
-                    <li class="page-item"><a class="page-link"
-                                             href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
-                            cùng &raquo;</a></li>
-                    {% endif %}
-                </ul>
-                <div class="input-group ml-3" style="max-width: 200px;">
-                    <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Chapter list -->
-        <div class="row mt-4">
-            {% for chapter in page_obj %}
-                <div class="col-md-6">
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <a href="{% url 'chapter_detail' story_name=story.title chapter_number=forloop.counter %}">{{ chapter.title }}</a>
-                        </li>
+            <!-- Pagination -->
+            <nav aria-label="Page navigation example" class="mt-4">
+                <div class="d-flex justify-content-center align-items-center">
+                    <ul class="pagination mb-0">
+                        {% if has_prev %}
+                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ prev_page }}">Trước</a></li>
+                        {% endif %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link"
+                                                     href="?page={{ page_obj.next_page_number }}">Sau</a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+                                cùng &raquo;</a></li>
+                        {% endif %}
                     </ul>
-                </div>
-            {% endfor %}
-        </div>
-
-        <!-- Pagination -->
-        <nav aria-label="Page navigation example" class="mt-4">
-            <div class="d-flex justify-content-center align-items-center">
-                <ul class="pagination mb-0">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a>
-                        </li>
-                    {% endif %}
-                    <li class="page-item"><a class="page-link"
-                                             href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
-                    {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Sau</a>
-                        </li>
-                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
-                            cùng &raquo;</a></li>
-                    {% endif %}
-                </ul>
-                <div class="input-group ml-3" style="max-width: 200px;">
-                    <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+                    <div class="input-group ml-3" style="max-width: 200px;">
+                        <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+                        </div>
                     </div>
                 </div>
+            </nav>
+
+            <!-- Chapter list -->
+            <div class="row mt-4">
+                {% for chapter in page_obj %}
+                    <div class="col-md-6">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <a href="{% url 'chapter_detail' story_name=story.title chapter_number=forloop.counter %}">{{ chapter.title }}</a>
+                            </li>
+                        </ul>
+                    </div>
+                {% endfor %}
             </div>
-        </nav>
+
+            <!-- Pagination -->
+            <nav aria-label="Page navigation example" class="mt-4">
+                <div class="d-flex justify-content-center align-items-center">
+                    <ul class="pagination mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a>
+                            </li>
+                        {% endif %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link"
+                                                     href="?page={{ page_obj.next_page_number }}">Sau</a>
+                            </li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Cuối
+                                cùng &raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                    <div class="input-group ml-3" style="max-width: 200px;">
+                        <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+        {% endif %}
 
         <script>
             function goToPage() {

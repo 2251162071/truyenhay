@@ -1,192 +1,280 @@
 import logging
-from multiprocessing.sharedctypes import class_cache
+import os
+import re
+import subprocess
+import time
 
 import requests
 from bs4 import BeautifulSoup
 from django.utils import timezone
+from dotenv import load_dotenv
 
-from app_truyen.models import Chapter
+from app_truyen.models import Chapter, Story, Genre, StoryGenre
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
-
-def fetch_page_content(url):
-    try:
-        response = requests.get(url, headers=HEADERS, timeout=10)
-        response.raise_for_status()
-        return response.text
-    except requests.Timeout:
-        logger.error(f"Request to {url} timed out.")
-    except requests.RequestException as e:
-        logger.error(f"Request failed for {url}: {str(e)}")
-    return None
-
-def get_chapter_content(chapter_url):
-    try:
-        page_content = fetch_page_content(chapter_url)
-        if not page_content:
-            return None, None
-
-        soup = BeautifulSoup(page_content, 'html.parser')
-
-        # Kiểm tra và lấy tiêu đề chương
-        chapter_title_element = soup.find('h2')
-        if not chapter_title_element:
-            logger.error(f"Chapter title not found in {chapter_url}")
-            return None, None
-        chapter_title = chapter_title_element.find('a', class_='chapter-title')
-        chapter_title = chapter_title.get_text(strip=True) if chapter_title else "Untitled Chapter"
-
-        # Lấy nội dung chương
-        chapter_content = soup.find('div', class_='chapter-c')
-        chapter_content = chapter_content.decode_contents() if chapter_content else None
-
-        return chapter_content, chapter_title
-    except Exception as e:
-        logger.error(f"Unexpected error processing {chapter_url}: {str(e)}")
-        return None, None
+CRAWL_URL = os.getenv('CRAWL_URL')
 
 
-def send_request(url):
+# Chapter
+## Crawl Chapter
+def crawl_chapter(story_name, chapter_number, crawl_url):
     """
-    Gửi request đến URL và trả về response.
-
-    Args:
-        url (str): URL cần gửi request.
-        'https://example.com/'
-
-    Returns:
-        requests.models.Response: Response từ request.
-
+    Crawl chapter content from the given URL and save it to the database.
+    :param story_name: tien-nghich
+    :param chapter_number: 1
+    :param crawl_url: https://truyenfull.io
+    :return:
     """
+    # Lay story_id
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Kiểm tra lỗi HTTP
-        # print(Fore.GREEN + f"Gửi request thành công: {url}")
-        logger.error(f"Gửi request thành công: {url}")
-        return response
-    except requests.RequestException as e:
-        # print(Fore.RED + f"Có lỗi khi gửi request: {e}")
-        logger.error(f"Có lỗi khi gửi request: {e}")
-        return None
+        story = Story.objects.get(title=story_name)
+    except Story.DoesNotExist:
+        return {'exists': False, 'error': f"Story '{story_name}' does not exist"}
+    # Gửi request để lấy nội dung chương
+    chapter_title, chapter_content = fetch_chapter_content(f"{crawl_url}/{story_name}/chuong-{chapter_number}")
 
+    if not chapter_title or not chapter_content:
+        return {'exists': False, 'error': f"Failed to fetch chapter content for chapter {chapter_number}"}
 
-# VPN Service
-import subprocess
-import os
+    chapter = {
+        'chapter_number': chapter_number,
+        'story': story,
+        'title': chapter_title,
+        'content': chapter_content,
+        'views': 0,
+        'updated_at': timezone.now()
+    }
 
-# def setup_vpn():
-#     """
-#     Thiết lập VPN mới trong Network Manager.
-#     """
-#     try:
-#         # Thêm kết nối VPN với Network Manager
-#         subprocess.run([
-#             "nmcli", "connection", "add",
-#             "type", "vpn",
-#             "vpn-type", "l2tp",
-#             "con-name", os.getenv('VPN_NAME'),
-#             "ifname", "--",
-#             "connection.autoconnect", "no",
-#             f"vpn.data", f"gateway={os.getenv('VPN_SERVER')},user={os.getenv('VPN_USERNAME')}"
-#         ], check=True)
-#
-#         # Cấu hình username và password
-#         subprocess.run([
-#             "nmcli", "connection", "modify", os.getenv('VPN_NAME'),
-#             f"vpn.secrets", f"password={os.getenv('VPN_PASSWORD')}"
-#         ], check=True)
-#
-#         print(f"VPN {os.getenv('VPN_NAME')} thiết lập thành công!")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Lỗi thiết lập VPN: {e}")
-#
-# def toggle_vpn(vpn_name, action):
-#     """
-#     Bật hoặc tắt VPN.
-#     action: 'up' để bật, 'down' để tắt.
-#     """
-#     try:
-#         if action == "up":
-#             subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
-#             print(f"VPN {vpn_name} đã được bật.")
-#         elif action == "down":
-#             subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
-#             print(f"VPN {vpn_name} đã được tắt.")
-#         else:
-#             print("Hành động không hợp lệ. Chỉ chấp nhận 'up' hoặc 'down'.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"Lỗi khi {action} VPN: {e}")
+    return {'exists': True, 'chapter': chapter}
+
 
 def fetch_chapter_content(chapter_url):
     """
     Gửi request tới URL để lấy nội dung chương.
+    :param chapter_url: URL của chương cần fetch
+    :return: Tiêu đề chương và nội dung chương (tuple)
     """
-    vpn_enabled = get_vpn_status(os.getenv('VPN_NAME'))  # Giả sử trạng thái VPN ban đầu là tắt
-    while True:
-        try:
-            response = requests.get(chapter_url, timeout=10)
-            if response.status_code == 503:
-                logger.warning("503 Service Unavailable - Toggling VPN...")
-                logger.info(f"VPN status: {'Enabled' if vpn_enabled else 'Disabled'}")
-                vpn_enabled = toggle_vpn(vpn_enabled, os.getenv('VPN_NAME'))
-                continue  # Thử lại request sau khi bật/tắt VPN
-            response.raise_for_status()
-            break  # Nếu request thành công, thoát khỏi vòng lặp
-        except requests.RequestException as e:
-            raise Exception(f"Failed to fetch URL {chapter_url}: {str(e)}")
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-    chapter_title = None
-    chapter_content = None
-
     try:
-        if soup.find('h2') is not None:
-            if soup.find('a', class_='chapter-title') is not None:
-                chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
-        if chapter_title is None:
-            chapter_title = "Untitled Chapter"
+        # Gửi request và parse nội dung HTML
+        chapter_content_response = send_request(chapter_url)
+        if not chapter_content_response:
+            return "Invalid Chapter", "Failed to fetch chapter content"
+
+        soup = BeautifulSoup(chapter_content_response.text, 'html.parser')
+
+        # Tìm tiêu đề chương
+        chapter_title_tag = soup.find('h2')
+        chapter_title = (
+            chapter_title_tag.find('a', class_='chapter-title').get_text(strip=True)
+            if chapter_title_tag and chapter_title_tag.find('a', class_='chapter-title')
+            else "Untitled Chapter"
+        )
+
+        # Tìm nội dung chương
         chapter_content_div = soup.find('div', class_='chapter-c')
-        chapter_content = chapter_content_div.decode_contents() if chapter_content_div else 'No content found'
-    except AttributeError:
-        pass  # Nếu không tìm thấy tiêu đề hoặc nội dung, trả về None
+        chapter_content = (
+            chapter_content_div.decode_contents()
+            if chapter_content_div
+            else "No content found"
+        )
 
-    return chapter_title, chapter_content
+        return chapter_title, chapter_content
 
-def save_or_update_chapter(story_id, chapter_number, title, content):
-    """
-    Lưu hoặc cập nhật chapter trong database.
-    """
-    chapter, created = Chapter.objects.get_or_create(
-        story_id=story_id,
-        chapter_number=chapter_number,
+    except Exception as e:
+        # Xử lý lỗi trong quá trình xử lý HTML hoặc gửi request
+        print(f"Error fetching chapter content: {e}")
+        return "Invalid Chapter", "Error occurred while processing content"
+
+
+## Save Chapter
+def save_or_update_chapter(chapter):
+    chapter, created = Chapter.objects.update_or_create(
+        story_id=chapter['story_id'],
+        chapter_number=chapter['chapter_number'],
         defaults={
-            'title': title,
-            'content': content,
-            'views': 0,
-            'updated_at': timezone.now()
+            'title': chapter['title'],
+            'content': chapter['content'],
+            'views': chapter['views'],
+            'updated_at': chapter['updated_at']
         }
     )
-    if not created:  # Nếu chapter đã tồn tại, cập nhật thông tin
-        chapter.title = title
-        chapter.content = content
-        chapter.updated_at = timezone.now()
-        chapter.save()
+    if chapter:
+        print('Successfully saved chapter:', chapter.title)
 
+    if created:
+        print(f"Successfully saved chapter: {chapter.title}")
     return chapter, created
 
+
+# Story
+## Crawl Story
+def crawl_story(story_url):
+    """
+    Crawl story information from the given URL and return story data.
+    """
+    # Gửi request và kiểm tra kết quả
+    story_info_response = send_request(story_url)
+    if not story_info_response:
+        return {'exists': False, 'error': f"Failed to fetch story information from {story_url}"}
+
+    soup = BeautifulSoup(story_info_response.text, 'html.parser')
+
+    try:
+        story_info = {
+            "title": story_url.split('/')[-1],
+            "title_full": extract_text(soup, 'h3', 'title'),
+            "author": extract_text(soup, 'a', attrs={'itemprop': 'author'}),
+            "genre": extract_text(soup, 'a', attrs={'itemprop': 'genre'}),
+            "status": get_status(soup),
+            "chapter_number": calculate_total_chapters(soup, story_url.split('/')[-1]),
+            "description": get_description(soup),
+            "rating": get_rating(soup),
+            "views": 0,
+            "updated_at": timezone.now(),
+            "image": 'default.webp',
+        }
+        return {'exists': True, 'story_info': story_info}
+    except Exception as e:
+        print(f"Error processing story data from {story_url}: {e}")
+        return {'exists': False, 'error': f"Error processing story data from {story_url}: {e}"}
+
+
+def calculate_total_chapters(soup, story_name):
+    """
+    Tính tổng số chương của một truyện từ nội dung HTML đã parse.
+    :param soup: Đối tượng BeautifulSoup chứa nội dung HTML của trang truyện.
+    :param story_name: Tên của truyện (phần cuối của URL).
+    :return: Tổng số chương (int).
+    """
+    try:
+        # Tìm phần tử phân trang
+        pagination = soup.find('ul', class_='pagination')
+
+        # Xác định link trang cuối cùng
+        if pagination:
+            last_page_link = next(
+                (a['href'] for a in pagination.find_all('a') if 'Cu' in a.get_text()),
+                None
+            )
+
+            # Nếu không có "Cuối", tìm link trang có số lớn nhất
+            if not last_page_link:
+                digit_links = [
+                    (a['href'], int(a.get_text()))
+                    for a in pagination.find_all('a')
+                    if a.get_text().isdigit()
+                ]
+                last_page_link = max(digit_links, key=lambda x: x[1], default=(None,))[0]
+        else:
+            # Nếu không có phân trang, giả định chỉ có một trang
+            last_page_link = f'{CRAWL_URL}/{story_name}/trang-1/#list-chapter'
+
+        # Gửi request đến trang cuối cùng và phân tích HTML
+        last_page_link_response = send_request(last_page_link)
+        last_page_link_response.raise_for_status()
+        last_page_soup = BeautifulSoup(last_page_link_response.text, 'html.parser')
+
+        # Tìm tất cả các chương trên trang cuối
+        pattern = rf'{CRAWL_URL}/{story_name}/chuong-(\d+)'
+        chapters = [
+            int(match.group(1))
+            for link in last_page_soup.find_all('a', href=True)
+            if (match := re.search(pattern, link['href']))
+        ]
+
+        # Trả về số chương lớn nhất
+        return max(chapters, default=0)
+
+    except requests.RequestException as e:
+        print(f"Request error: {e}")
+        return 0
+    except Exception as e:
+        print(f"Error calculating total chapters: {e}")
+        return 0
+
+
+def extract_text(soup, tag, class_name=None, attrs=None, default="Unknown"):
+    """
+    Trích xuất văn bản từ một thẻ HTML dựa trên tag, class hoặc attributes.
+    """
+    element = soup.find(tag, class_=class_name, attrs=attrs)
+    return element.get_text(strip=True) if element else default
+
+
+def get_status(soup):
+    """
+    Trích xuất trạng thái của truyện từ các class cụ thể.
+    """
+    status_classes = ['text-primary', 'text-success', 'label-hot']
+    for status_class in status_classes:
+        status_tag = soup.find('span', class_=status_class)
+        if status_tag:
+            return status_tag.get_text(strip=True)
+    return 'Unknown'
+
+
+def get_description(soup):
+    desc_tag = soup.find('div', class_='desc-text desc-text-full') or soup.find('div', {'itemprop': 'description'})
+    return desc_tag.prettify() if desc_tag else 'Unknown'
+
+
+def get_rating(soup):
+    rating_tag = soup.find('span', itemprop='ratingValue')
+    return float(rating_tag.get_text(strip=True)) if rating_tag else 0.0
+
+
+## Save Story
+def save_or_update_story(story_info):
+    story, created = Story.objects.update_or_create(
+        title=story_info['title'],
+        defaults={
+            'title_full': story_info['title_full'],
+            'author': story_info['author'],
+            'status': story_info['status'],
+            'description': story_info['description'],
+            'rating': story_info['rating'],
+            'chapter_number': story_info['chapter_number'],
+            'image': story_info['image'],
+            'views': story_info['views'],
+            'updated_at': story_info['updated_at']
+        }
+    )
+    if created:
+        print(f"Successfully saved story: {story_info['title_full']}")
+    else:
+        print(f"Successfully updated story: {story_info['title_full']}")
+
+    genre = Genre.objects.filter(name_full=story_info['genre']).first()
+    if genre:
+        StoryGenre.objects.get_or_create(story_id=story.id, genre_id=genre.id)
+    return story, created
+
+
+# Genre
+## Crawl Genre
+
+## Save Genre
+
+
+# HotStory
+
+# StoryGenre
+
+# NewUpdatedStory
+
+
+# VPN
 def get_vpn_status(vpn_name):
     """
-    Kiểm tra trạng thái của VPN.
-    Args:
-        vpn_name (str): Tên của VPN cần kiểm tra.
+            Kiểm tra trạng thái của VPN.
+            Args:
+                vpn_name (str): Tên của VPN cần kiểm tra.
 
-    Returns:
-        bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
-    """
+            Returns:
+                bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
+            """
     try:
         result = subprocess.run(
             ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
@@ -199,13 +287,18 @@ def get_vpn_status(vpn_name):
         for connection in active_connections:
             name, conn_type, state = connection.split(':')
             if name == vpn_name and conn_type == "vpn" and state == "activated":
-                logger.info(f"VPN {vpn_name} đang được bật.")
+                print(f"VPN {vpn_name} đang được bật.")
                 return True
-        logger.info(f"VPN {vpn_name} đang tắt.")
+        print(f"VPN {vpn_name} đang tắt.")
         return False
     except subprocess.CalledProcessError as e:
-        logger.error(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
+        print(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
         raise
+
+
+def is_vpn_enable():
+    return get_vpn_status(os.getenv('VPN_NAME'))
+
 
 def toggle_vpn(vpn_enabled, vpn_name=None):
     """
@@ -222,20 +315,38 @@ def toggle_vpn(vpn_enabled, vpn_name=None):
         raise ValueError("VPN_NAME environment variable is not set.")
 
     try:
-        # current_status = get_vpn_status(vpn_name)
-        # if vpn_enabled == current_status:
-        #     logger.info(f"VPN {vpn_name} đã ở trạng thái mong muốn ({'Enabled' if vpn_enabled else 'Disabled'}).")
-        #     return vpn_enabled
-
         if not vpn_enabled:
-            logger.info("Enabling VPN...")
+            print("Enabling VPN...")
             subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
-            logger.info(f"VPN {vpn_name} đã được bật.")
+            print(f"VPN {vpn_name} đã được bật.")
         else:
-            logger.info("Disabling VPN...")
+            print("Disabling VPN...")
             subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
-            logger.info(f"VPN {vpn_name} đã được tắt.")
+            print(f"VPN {vpn_name} đã được tắt.")
         return not vpn_enabled
     except subprocess.CalledProcessError as e:
-        logger.error(f"Lỗi khi bật/tắt VPN: {e}")
+        print(f"Lỗi khi bật/tắt VPN: {e}")
         raise
+
+
+def send_request(url):
+    """
+    Gửi request đến URL và trả về response.
+    :param url: Địa chỉ URL cần gửi request
+    :return: response object hoặc thông báo lỗi
+    """
+    while True:
+        try:
+            send_response = requests.get(url, timeout=10)
+            if send_response.status_code == 503:
+                print("503 Service Unavailable - Toggling VPN...")
+                time.sleep(5)
+                toggle_vpn(is_vpn_enable(), os.getenv('VPN_NAME'))
+                continue  # Thử lại sau khi bật/tắt VPN
+            # Kiểm tra trạng thái HTTP, ném lỗi nếu cần
+            send_response.raise_for_status()
+            return send_response  # Trả về response nếu thành công
+        except requests.RequestException as e:
+            # Trường hợp xảy ra lỗi, in ra lỗi chi tiết
+            print(f"[send_request]Failed to fetch URL {url}: {str(e)}")
+            return None

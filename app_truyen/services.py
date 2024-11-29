@@ -1,16 +1,21 @@
-import os
-from .models import Story, Chapter, Genre, HotStory
-from .utils import get_chapter_content
-from django.utils import timezone
 import logging
+import os
+
+from django.utils import timezone
+
+from .models import Story, Chapter, Genre, HotStory
+from .utils import fetch_chapter_content, save_or_update_chapter
+
 logger = logging.getLogger(__name__)
 from dotenv import load_dotenv
+
 load_dotenv()
 
 CRAWL_URL = os.getenv('CRAWL_URL')
 
 if not CRAWL_URL:
     logger.error("CRAWL_URL is not configured in the environment variables.")
+
 
 def get_hot_stories():
     hot_stories = HotStory.objects.select_related('story').all()
@@ -23,12 +28,13 @@ def get_hot_stories():
             'views': hot_story.story.views,
             'description': hot_story.story.description,
             'rating': hot_story.story.rating,
-            'image': hot_story.story.image,
-            'image_path': 'images/' + hot_story.story.image,
+            'image': hot_story.story.image or 'default_image.jpg',  # Thay giá trị None bằng ảnh mặc định
+            'image_path': 'images/' + (hot_story.story.image or 'default_image.jpg'),  # Đảm bảo nối chuỗi không bị lỗi
             'link': f'/{hot_story.story.title}/',
         }
         for hot_story in hot_stories
     ]
+
 
 def get_recommend_stories():
     # Find 5 stories with max views
@@ -48,6 +54,7 @@ def get_recommend_stories():
         }
         for story in recommend_stories
     ]
+
 
 def get_story_data(story_title):
     try:
@@ -85,31 +92,56 @@ def get_chapter_data(story_name, chapter_number):
         return {'exists': False, 'error': 'Chapter does not exist'}
 
 
-def crawl_chapters_for_story(story_name, page_number):
+def crawl_chapters_for_story(story_title, start_chapter, end_chapter=None):
+    """
+    Crawl chapters for a specific story from start_chapter to end_chapter.
+    """
     try:
-        story = Story.objects.get(title=story_name)  # Truy vấn story một lần
-        chapter_min = (page_number - 1) * 50 + 1
-        chapter_max = page_number * 50
+        # Lấy thông tin truyện từ database
+        story = Story.objects.get(title=story_title)
+        chapters_to_create = []
 
-        for chapter_number in range(chapter_min, chapter_max + 1):
-            chapter_url = f"{CRAWL_URL}/{story_name}/chuong-{chapter_number}"
-            content, title = get_chapter_content(chapter_url)
+        # Nếu không có end_chapter, chỉ crawl một chương
+        if end_chapter is None:
+            end_chapter = start_chapter
 
-            if content:
-                Chapter.objects.update_or_create(
-                    story=story,
-                    chapter_number=chapter_number,
-                    defaults={
-                        'title': title,
-                        'content': content,
-                        'views':10,
-                        'updated_at': timezone.now(),
-                    }
-                )
+        # Kiểm tra phạm vi chapter
+        if start_chapter <= 0 or end_chapter < start_chapter:
+            raise ValueError("Invalid chapter range")
+
+        for chapter_number in range(start_chapter, end_chapter + 1):
+            chapter_url = f"{story_title}/chuong-{chapter_number}"
+            print(f"Fetching content for chapter {chapter_number} of story '{story_title}' from {chapter_url}")
+
+            # Gửi request để lấy nội dung chương
+            chapter_title, chapter_content = fetch_chapter_content(chapter_url)
+
+            if chapter_title and chapter_content:
+                chapters_to_create.append({
+                    'chapter_number': chapter_number,
+                    'story_id': story.id,
+                    'title': chapter_title,
+                    'content': chapter_content,
+                    'views': 0,
+                    'updated_at': timezone.now()
+                })
+            else:
+                print(f"Failed to fetch content for chapter {chapter_number} of story '{story_title}'.")
+
+        # Lưu chương vào database
+        for chapter_data in chapters_to_create:
+            try:
+                saved_chapter, created = save_or_update_chapter(chapter_data)
+                print(f"Successfully saved chapter {saved_chapter.title}.")
+            except Exception as e:
+                print(f"Error saving chapter {chapter_data['chapter_number']}: {e}")
+
     except Story.DoesNotExist:
-        logger.error(f"Story {story_name} does not exist")
+        print(f"Story '{story_title}' does not exist.")
+    except ValueError as ve:
+        print(f"Value error: {ve}")
     except Exception as e:
-        logger.error(f"Error while crawling chapters for {story_name}: {str(e)}")
+        print(f"Unexpected error while crawling chapters for story '{story_title}': {e}")
 
 
 def get_stories_by_genre(genre_name):
@@ -133,7 +165,7 @@ def crawl_chapters(story_title, start_chapter, end_chapter=None):
 
         for chapter_number in range(start_chapter, end_chapter + 1):
             chapter_url = f"{CRAWL_URL}/{story_title}/chuong-{chapter_number}"
-            content, title = get_chapter_content(chapter_url)
+            content, title = fetch_chapter_content(chapter_url)
 
             if content:
                 chapters_to_create.append(

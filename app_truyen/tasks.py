@@ -1,173 +1,51 @@
-import asyncio
-import aiohttp
-import os
-import time
+from django.utils.timezone import now
 
-from bs4 import BeautifulSoup
-import requests
-
-from .models import Story, Chapter
-from dotenv import load_dotenv
-from asgiref.sync import sync_to_async
-from .utils import fetch_chapter_content, get_vpn_status, toggle_vpn
-
-import logging
-logger = logging.getLogger(__name__)
 from truyenhay.settings import CRAWL_URL
+from .models import Story
+from .utils import fetch_chapter_content, save_or_update_chapter
 
-load_dotenv()
-
-async def fetch_content(url):
-    retries = 5
-    delay = 5
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-        "Referer": CRAWL_URL,  # Thay thế bằng URL bạn muốn
-    }
-    for attempt in range(retries):
-        try:
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            return {'exists': False, 'error': f"Failed to fetch URL {url}: {str(e)}"}
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        try:
-            chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
-            chapter_content_div = soup.find('div', class_='chapter-c')
-            chapter_content = chapter_content_div.get_text(separator='\n', strip=True) if chapter_content_div else None
-        except AttributeError:
-            return {'exists': False, 'error': 'Failed to parse chapter content'}
-
-        return {'exists': True, 'title': chapter_title, 'content': chapter_content}
-
-async def fetch_chapter_content_and_title(url):
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
-        chapter_content_div = soup.find('div', class_='chapter-c')
-        chapter_content = chapter_content_div.decode_contents() if chapter_content_div else None
-        return {'exists': True, 'title': chapter_title, 'content': chapter_content}
-    except requests.RequestException as e:
-        return {'exists': False, 'error': f"Failed to fetch URL {url}: {str(e)}"}
-    except AttributeError:
-        return {'exists': False, 'error': 'Failed to parse chapter content'}
-
-
-async def crawl_chapters_async(story_title, start_chapter, end_chapter):
+def crawl_chapters(story_title, start_chapter, end_chapter):
+    """
+        Crawl chương từ `start_chapter` đến `end_chapter` cho một truyện cụ thể.
+        Sử dụng lại hàm `fetch_chapter_content_generic` từ utils.py và `save_or_update_chapter`.
+        """
     result = []
     try:
         # Lấy thông tin truyện
-        story = await sync_to_async(Story.objects.get)(title=story_title)
+        story = Story.objects.get(title=story_title)
     except Story.DoesNotExist:
-        logger.error(f"Truyện '{story_title}' không tồn tại.")
-        print(f"Truyện '{story_title}' không tồn tại.")
+        print(f"Story '{story_title}' does not exist.")
         return result
     except Exception as e:
-        logger.error(f"Lỗi khi truy vấn Story: {e}")
-        print(f'Lỗi khi truy vấn Story: {e}')
+        print(f"Error retrieving story '{story_title}': {e}")
         return result
 
     for chapter_number in range(start_chapter, end_chapter + 1):
-        chapter_url = f"{CRAWL_URL}/{story_title}/chuong-{chapter_number}"
-        chapter_data = await fetch_chapter_content_and_title(chapter_url)
+        chapter_url = f"{CRAWL_URL}/{story.title}/chuong-{chapter_number}"
+        print(f"Fetching content for chapter {chapter_number} of story '{story_title}' from {chapter_url}.")
 
-        if chapter_data['exists']:
-            chapter, created = await sync_to_async(Chapter.objects.update_or_create)(
-                story=story,
-                chapter_number=chapter_number,
-                defaults={
-                    'title': chapter_data['title'],
-                    'content': chapter_data['content'],
-                    'views': 10,
-                    'updated_at': timezone.now(),
-                }
-            )
-            result.append(chapter)
+        # Gọi hàm fetch nội dung chương
+        chapter_title, chapter_content = fetch_chapter_content(chapter_url)
+
+        if chapter_title and chapter_content:
+            chapter = {
+                "chapter_number": chapter_number,
+                "story_id": story.id,
+                "title": chapter_title,
+                "content": chapter_content,
+                "views": 10,
+                "updated_at": now(),
+            }
+            # Lưu hoặc cập nhật chương
+            try:
+                saved_chapter, created = save_or_update_chapter(chapter)
+                result.append(saved_chapter)
+                print(f"Chapter {chapter_number} of story '{story_title}' saved successfully.")
+            except Exception as e:
+                print(f"Error saving chapter {chapter_number} of story '{story_title}': {e}")
         else:
-            logger.error(f"Failed to fetch content for chapter {chapter_number} of story '{story_title}'")
+            print(
+                f"Failed to fetch content for chapter {chapter_number} of story '{story_title}'"
+            )
 
     return result
-
-
-
-async def download_noi_dung_chuong(link_chuong):
-    """
-    Lấy nội dung chương từ link chương.
-
-    Args:
-        link_chuong (str): Link chương cần lấy nội dung.
-
-    Returns:
-        str: Nội dung chương.
-
-    """
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link_chuong) as response:
-                if response.status == 200:
-                    soup = BeautifulSoup(await response.text(), 'html.parser')
-                    chapter_content = soup.find('div', class_='chapter-c')
-                    print(chapter_content)
-                    return chapter_content.get_text(separator='\n', strip=True) if chapter_content else None
-                else:
-                    logger.error(f"Lỗi HTTP {response.status} khi tải chương {link_chuong}")
-                    return None
-    except aiohttp.ClientError as e:
-        logger.error(f"Lỗi khi tải chương {link_chuong}: {e}")
-        return None
-
-
-
-
-from app_truyen.models import Story, Chapter
-from bs4 import BeautifulSoup
-import requests
-from django.utils import timezone
-
-def fetch_chapter(story_name, chapter_number, crawl_url):
-    try:
-        story = Story.objects.get(title=story_name)
-    except Story.DoesNotExist:
-        return {'exists': False, 'error': f"Story '{story_name}' does not exist"}
-
-    chapter_url = f"{crawl_url}/{story_name}/chuong-{chapter_number}"
-
-    try:
-        response = requests.get(chapter_url, timeout=10)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        return {'exists': False, 'error': f"Failed to fetch URL {chapter_url}: {str(e)}"}
-
-    soup = BeautifulSoup(response.text, 'html.parser')
-    chapter_title = None
-    chapter_content = None
-
-    try:
-        chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
-        chapter_content_div = soup.find('div', class_='chapter-c')
-        chapter_content = chapter_content_div.decode_contents() if chapter_content_div else None
-    except AttributeError:
-        return {'exists': False, 'error': 'Failed to parse chapter content'}
-
-    chapter, created = Chapter.objects.get_or_create(
-        story_id=story.id,
-        chapter_number=chapter_number,
-        defaults={
-            'title': chapter_title,
-            'content': chapter_content,
-            'views': 0,
-            'updated_at': timezone.now()
-        }
-    )
-    if not created:
-        chapter.title = chapter_title
-        chapter.content = chapter_content
-        chapter.updated_at = timezone.now()
-        chapter.save()
-
-    return {'exists': True, 'chapter': f"{chapter.title} (Chapter {chapter_number})"}

@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+# from django.test import TestCase, Client
 from django.utils import timezone
 from decimal import Decimal
 from django.core.cache import cache
@@ -7,7 +7,7 @@ from .models import Genre, Story, StoryGenre, Chapter, UserReading, HotStory, Ne
 from .views import CRAWL_STATUS_KEY
 from unittest.mock import patch
 
-class GenreModelTest(TestCase):
+class GenreModelTest(TestCadse):
     def setUp(self):
         self.genre = Genre.objects.create(name_full="Tiên hiệp")
 
