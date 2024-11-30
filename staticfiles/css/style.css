@@ -1,0 +1,147 @@
+﻿body {
+    /* background-color: #2b2b2b; */
+    color: black;
+    font-family: 'Roboto', sans-serif;
+    /* Chọn một font */
+}
+
+@media (max-width: 767px) {
+    .sidebar {
+        display: none;
+    }
+}
+
+.section-title {
+    color: #f1c40f;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.book-section {
+    background: linear-gradient(180deg, #1a1e25 0%, #2c2c2c 100%);
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.book-card {
+    position: relative;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    padding: 5px;
+}
+
+.book-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.book-card img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.3s;
+}
+
+.book-card:hover img {
+    transform: scale(1.05);
+}
+
+.book-status {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: #7fbf7f;
+    color: #ffffff;
+    padding: 4px 8px;
+    font-size: 14px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    padding: 5px 10px;
+}
+
+.book-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #e0b316;
+    margin-top: 8px;
+    transition: color 0.3s;
+}
+
+.book-title:hover {
+    color: #ffdd57;
+}
+
+.badge {
+    margin-left: 5px;
+    font-size: 12px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.badge-hot {
+    background-color: #e67e22;
+}
+
+.badge-full {
+    background-color: #27ae60;
+}
+
+.chapter {
+    color: limegreen;
+}
+
+.update-time {
+    color: gray;
+}
+
+.sidebar {
+    color: #bbb;
+}
+
+.sidebar-title {
+    color: #f1c40f;
+    font-size: 20px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.sidebar-link {
+    color: #ddd;
+    display: block;
+    padding: 5px 0;
+    transition: color 0.3s;
+}
+
+.sidebar-link:hover {
+    color: #ffffff;
+}
+
+.content {
+    font-size: 24px;
+}
+
+/* Custom styles for the 3-column dropdown */
+.dropdown-menu {
+    max-width: 600px;
+    overflow-y: auto;
+    flex-wrap: nowrap;
+    display: none;
+    /* Hide by default */
+    position: absolute;
+}
+
+.dropdown-column {
+    flex: 1;
+    padding: 10px;
+}
+
+/* Show dropdown on toggle */
+.dropdown-menu.show {
+    display: flex;
+}

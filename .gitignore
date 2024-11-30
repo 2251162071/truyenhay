@@ -19,8 +19,8 @@ db.sqlite3
 **/migrations/**
 
 # Static files (if managed dynamically)
-staticfiles/
-static/
+#staticfiles/
+#static/
 
 # Media files
 media/

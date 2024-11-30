@@ -1,0 +1,71 @@
+div.container{
+    /*background-color: #343a40;*/
+    /*color: #ffffff; !* Light text color *!*/
+}
+
+a {
+    color: #e0b316;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Bold text */
+}
+
+a:hover {
+    text-decoration: underline; /* Add underline on hover */
+    font-weight: bold; /* Bold text */
+}
+
+ul {
+    padding-left: 0; /* Remove padding */
+}
+
+ul li {
+    background-color: #343a40;
+    list-style: none; /* Remove bullet points */
+    margin: 5px 0; /* Add spacing between items */
+}
+
+a.page-link{
+    color: #e0b316;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Bold text */
+}
+
+a.page-link:hover{
+    text-decoration: underline; /* Add underline on hover */
+    font-weight: bold; /* Bold text */
+    background-color: #e0b316;
+    border-color: #e0b316;
+    color: #fff;
+}
+
+.page-item.active .page-link{
+    background-color: #e0b316;
+    border-color: #e0b316;
+    color: #fff;
+}
+
+button.btn.btn-primary{
+    background-color: #e0b316;
+    border-color: #e0b316;
+}
+
+.list-group.list-group-item a:hover{
+    color: #e0b316;
+}
+
+h2{
+    color: #e0b316;
+    font-weight: bold;
+}
+
+.page-item:first-child .page-link{
+    margin-left: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.page-item:last-child .page-link{
+    margin-right: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}

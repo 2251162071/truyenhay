@@ -1,0 +1,126 @@
+/* Style cho tiêu đề truyện */
+div#story-title {
+    background-color: #f8f9fa; /* Màu nền */
+    padding: 10px; /* Khoảng cách giữa nội dung và viền */
+    border: 1px solid #e9ecef; /* Viền */
+    border-radius: 5px; /* Bo tròn viền */
+    margin: 20px; /* Khoảng cách giữa tiêu đề và nội dung */
+}
+
+
+/* Font và kích thước chữ cho tiêu đề */
+div#story-title h1 {
+    font-family: 'Georgia', serif; /* Font chữ khác cho tiêu đề */
+    font-size: 26px; /* Kích thước lớn hơn */
+    font-weight: bold; /* Chữ đậm */
+    text-align: center; /* Căn giữa tiêu đề */
+    margin-top: 20px; /* Khoảng cách trên */
+    margin-bottom: 10px; /* Khoảng cách dưới */
+}
+
+div#story-title h1 a {
+    color: #e0b316; /* Màu sắc */
+}
+
+/* Style cho tiêu đề chương */
+div#chapter-title {
+    background-color: #f8f9fa; /* Màu nền */
+    padding: 10px; /* Khoảng cách giữa nội dung và viền */
+    border: 1px solid #e9ecef; /* Viền */
+    border-radius: 5px; /* Bo tròn viền */
+    margin: 20px; /* Khoảng cách giữa tiêu đề và nội dung */
+}
+
+
+/* Font và kích thước chữ cho tiêu đề */
+div#chapter-title h2 {
+    font-family: 'Georgia', serif; /* Font chữ khác cho tiêu đề */
+    font-size: 24px; /* Kích thước lớn hơn */
+    font-weight: bold; /* Chữ đậm */
+    color: #e0b316; /* Màu sắc */
+    text-align: center; /* Căn giữa tiêu đề */
+    margin-top: 20px; /* Khoảng cách trên */
+    margin-bottom: 10px; /* Khoảng cách dưới */
+}
+
+/* Căn chỉnh phân trang */
+.pagination-controls {
+    display: flex;
+    justify-content: center; /* Căn giữa phân trang */
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* Font và kích thước chữ cho nội dung chương */
+div#chapter-content {
+    color: #1a1e25; /* Giữ nguyên hoặc chỉnh sửa màu chữ */
+    font-family: 'Arial', sans-serif; /* Đổi font chữ */
+    font-size: 18px; /* Đặt kích thước chữ */
+    line-height: 1.6; /* Cải thiện khoảng cách giữa các dòng */
+    text-align: justify; /* Canh đều hai bên */
+    margin: 20px; /* Tạo khoảng cách đều xung quanh nội dung */
+}
+
+/* Style cho từng liên kết phân trang */
+ul.pagination {
+    list-style: none; /* Xóa gạch đầu dòng */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 10px; /* Khoảng cách giữa các nút */
+}
+
+ul.pagination li {
+    display: inline-block;
+}
+
+/* Phong cách cho các liên kết phân trang */
+ul.pagination .page-link {
+    color: #e0b316; /* Màu chữ đồng bộ */
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    background-color: #343a40; /* Nền màu tối */
+    border: 1px solid #343a40; /* Viền */
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+/* Hiệu ứng hover */
+ul.pagination .page-link:hover {
+    background-color: #e0b316; /* Màu nền khi hover */
+    color: #ffffff; /* Màu chữ khi hover */
+    border-color: #e0b316;
+    text-decoration: underline;
+}
+
+/* Trang hiện tại */
+.page-item.active .page-link {
+    background-color: #e0b316; /* Màu nền cho trang hiện tại */
+    color: #ffffff; /* Màu chữ cho trang hiện tại */
+    border-color: #e0b316;
+}
+
+/* Nút phân trang vô hiệu hóa */
+.page-item.disabled .page-link {
+    background-color: #dddddd; /* Màu nền nhạt */
+    color: #777777; /* Màu chữ nhạt */
+    pointer-events: none; /* Không cho click */
+}
+
+/* Căn chỉnh nút "Previous" và "Next" */
+.page-item:first-child .page-link {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.page-item:last-child .page-link {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+ul.pagination .disabled .page-link {
+    background-color: #dddddd; /* Màu cho nút vô hiệu hóa */
+    color: #777777;
+    pointer-events: none; /* Không thể nhấn */
+}

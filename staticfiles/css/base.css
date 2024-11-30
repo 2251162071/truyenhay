@@ -1,0 +1,33 @@
+body {
+    font-family: "Palatino Linotype", "Arial", "Times New Roman", sans-serif;
+}
+
+.content {
+    font-size: 24px;
+}
+
+/* Custom styles for the 3-column dropdown */
+.dropdown-menu {
+    width: 600px;
+    flex-wrap: nowrap;
+    display: none;
+    /* Hide by default */
+    position: absolute;
+    background-color: #343a40;
+}
+
+.dropdown-column {
+    flex: 1;
+    padding: 10px;
+}
+
+.dropdown-item{
+    color: #e0b316 !important;
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Bold text */
+}
+
+/* Show dropdown on toggle */
+.dropdown-menu.show {
+    display: flex;
+}
