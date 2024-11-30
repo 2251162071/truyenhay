@@ -1,4 +1,5 @@
 import os
+import re
 
 import requests
 from django.core.management.base import BaseCommand
@@ -39,8 +40,13 @@ class Command(BaseCommand):
         try:
             story = self.get_story_by_name(story_name)
             chapter_url = f"{CRAWL_URL}/{story_name}/chuong-{chapter_number}"
+            # import pdb
+            # pdb.set_trace()
             print('chapter_url', chapter_url)
             title, content = self.fetch_chapter_content(chapter_url)
+            if title is None:
+                self.stdout.write(self.style.ERROR(f"====[{story_name}]====Chapter {chapter_number} not found"))
+                return
             chapter, created = self.save_or_update_chapter(story.id, chapter_number, title, content)
             if created:
                 self.stdout.write(self.style.SUCCESS(f"Chapter {chapter_number} added: {chapter.title}"))
@@ -55,6 +61,8 @@ class Command(BaseCommand):
         """
         Lấy thông tin Story từ database theo tên.
         """
+        print(f"Looking for story: {story_name}")
+
         try:
             return Story.objects.get(title=story_name)
         except Story.DoesNotExist:
@@ -65,8 +73,15 @@ class Command(BaseCommand):
         Gửi request tới URL để lấy nội dung chương.
         """
         response = utils.send_request(chapter_url)
-
+        # import pdb
+        # pdb.set_trace()
         soup = BeautifulSoup(response.text, 'html.parser')
+        # Tìm text TRUYỆN CÙNG TÁC GIẢ trong soup
+        result = soup.find_all('div', class_='book-intro')
+
+        if result:
+            return None, None
+
         chapter_title = None
         chapter_content = None
 
@@ -83,82 +98,25 @@ class Command(BaseCommand):
         """
         Lưu hoặc cập nhật chapter trong database.
         """
-        chapter, created = Chapter.objects.get_or_create(
+        chapter, created = Chapter.objects.update_or_create(
             story_id=story_id,
             chapter_number=chapter_number,
             defaults={
-                'title': title,
                 'content': content,
                 'views': 0,
                 'updated_at': timezone.now()
             }
         )
         if not created:  # Nếu chapter đã tồn tại, cập nhật thông tin
-            chapter.title = title
             chapter.content = content
             chapter.updated_at = timezone.now()
             chapter.save()
 
         return chapter, created
 
-    def get_vpn_status(self, vpn_name):
-        """
-        Kiểm tra trạng thái của VPN.
-        Args:
-            vpn_name (str): Tên của VPN cần kiểm tra.
-
-        Returns:
-            bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
-        """
-        try:
-            result = subprocess.run(
-                ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
-                stdout=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-            # Kiểm tra nếu VPN đang hoạt động
-            active_connections = result.stdout.strip().split('\n')
-            for connection in active_connections:
-                name, conn_type, state = connection.split(':')
-                if name == vpn_name and conn_type == "vpn" and state == "activated":
-                    logger.info(f"VPN {vpn_name} đang được bật.")
-                    return True
-            logger.info(f"VPN {vpn_name} đang tắt.")
-            return False
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
-            raise
-
-    def toggle_vpn(self, vpn_enabled, vpn_name=None):
-        """
-        Bật hoặc tắt VPN.
-        Args:
-            vpn_enabled (bool): Trạng thái hiện tại của VPN.
-            vpn_name (str, optional): Tên VPN. Mặc định lấy từ biến môi trường VPN_NAME.
-
-        Returns:
-            bool: Trạng thái VPN sau khi thay đổi.
-        """
-        vpn_name = vpn_name or os.getenv('VPN_NAME')
-        if not vpn_name:
-            raise ValueError("VPN_NAME environment variable is not set.")
-
-        try:
-            # current_status = get_vpn_status(vpn_name)
-            # if vpn_enabled == current_status:
-            #     logger.info(f"VPN {vpn_name} đã ở trạng thái mong muốn ({'Enabled' if vpn_enabled else 'Disabled'}).")
-            #     return vpn_enabled
-
-            if not vpn_enabled:
-                logger.info("Enabling VPN...")
-                subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
-                logger.info(f"VPN {vpn_name} đã được bật.")
-            else:
-                logger.info("Disabling VPN...")
-                subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
-                logger.info(f"VPN {vpn_name} đã được tắt.")
-            return not vpn_enabled
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Lỗi khi bật/tắt VPN: {e}")
-            raise
+    def change_title(self, title):
+        pattern = r"(Chương)(\d+)(.*)"
+        match = re.search(pattern, title)
+        if match:
+            return match.group(1) + " " + match.group(2) + match.group(3)
+        return title

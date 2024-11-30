@@ -11,8 +11,7 @@
                 {% if previous_chapter %}
                     <li class="page-item">
                         <a class="page-link"
-                           href="{% url 'chapter_detail' story_name=story chapter_number=previous_chapter.chapter_number %}"
-                           id="prev-chapter">Previous</a>
+                           href="{% url 'chapter_detail' story_name=story chapter_number=previous_chapter.chapter_number %}">Previous</a>
                     </li>
                 {% else %}
                     <li class="page-item disabled">
@@ -20,15 +19,14 @@
                     </li>
                 {% endif %}
 
-                <li class="page-item disabled">
-                    <span class="page-link">{{ current_chapter.chapter_number }}<span class="sr-only">(current)</span></span>
+                <li class="page-item active">
+                    <span class="page-link">{{ current_chapter.chapter_number }}</span>
                 </li>
 
                 {% if next_chapter %}
                     <li class="page-item">
                         <a class="page-link"
-                           href="{% url 'chapter_detail' story_name=story chapter_number=next_chapter.chapter_number %}"
-                           id="next-chapter">Next</a>
+                           href="{% url 'chapter_detail' story_name=story chapter_number=next_chapter.chapter_number %}">Next</a>
                     </li>
                 {% else %}
                     <li class="page-item disabled">
@@ -37,6 +35,9 @@
                 {% endif %}
             </ul>
         </nav>
+    </div>
+    <div id="story-title">
+        <h1><a href="{{ base_url }}/{{ story }}">{{ story_full }}</a></h1>
     </div>
     <div id="chapter-title">
         <h2>{{ current_chapter.title }}</h2>
@@ -60,7 +61,8 @@
                 {% endif %}
 
                 <li class="page-item disabled">
-                    <span class="page-link">{{ current_chapter.chapter_number }}<span class="sr-only">(current)</span></span>
+                    <span class="page-link">{{ current_chapter.chapter_number }}<span
+                            class="sr-only">(current)</span></span>
                 </li>
 
                 {% if next_chapter %}
@@ -95,11 +97,11 @@
     </script>
     <script>
         const storyName = "{{ story }}"; // Tên ngắn gọn cho cache key
-        const storyNameFull = "{{ story_full }}"; // Tên đầy đủ của truyện
+        //const storyNameFull = "{{ story_full }}"; // Tên đầy đủ của truyện
         const chapterName = "{{ chapter.title }}"; // Tên chương hiện tại
         const link = window.location.href;
-        const chapterNumber = parseInt("{{ chapter.chapter_number }}"); // Số chương hiện tại
-        const currentContent = document.getElementById("chapter-content").innerHTML; // Nội dung chương hiện tại
+        //const chapterNumber = parseInt("{{ chapter.chapter_number }}"); // Số chương hiện tại
+        //const currentContent = document.getElementById("chapter-content").innerHTML; // Nội dung chương hiện tại
 
 
         // Hàm thêm truyện vào danh sách đọc gần nhất
@@ -123,40 +125,40 @@
         }
 
         // Hàm lưu nội dung chương vào cache
-        function saveChapterContent(storyName, chapterNumber, content) {
-            const cacheKey = `${storyName}_chapter_${chapterNumber}`;
-            const chapterData = {
-                content: content,
-                timestamp: Date.now() // Lưu thời gian để kiểm tra tính hợp lệ
-            };
-            localStorage.setItem(cacheKey, JSON.stringify(chapterData));
-        }
+        //function saveChapterContent(storyName, chapterNumber, content) {
+        //    const cacheKey = `${storyName}_chapter_${chapterNumber}`;
+        //    const chapterData = {
+        //        content: content,
+        //        timestamp: Date.now() // Lưu thời gian để kiểm tra tính hợp lệ
+        //    };
+        //    localStorage.setItem(cacheKey, JSON.stringify(chapterData));
+        //}
 
         // Hàm tải nội dung từ cache
-        function loadChapterFromCache(storyName, chapterNumber) {
-            const cacheKey = `${storyName}_chapter_${chapterNumber}`;
-            const cachedData = JSON.parse(localStorage.getItem(cacheKey));
-
-            if (cachedData) {
-                const currentTime = Date.now();
-                const cacheAge = (currentTime - cachedData.timestamp) / (1000 * 60); // Tính tuổi cache theo phút
-
-                // Kiểm tra cache có hợp lệ không (ví dụ: nhỏ hơn 1 ngày)
-                if (cacheAge < 1440) {
-                    return cachedData.content;
-                }
-            }
-            return null; // Cache không hợp lệ hoặc không tồn tại
-        }
+        //function loadChapterFromCache(storyName, chapterNumber) {
+        //    const cacheKey = `${storyName}_chapter_${chapterNumber}`;
+        //    const cachedData = JSON.parse(localStorage.getItem(cacheKey));
+//
+        //    if (cachedData) {
+        //        const currentTime = Date.now();
+        //        const cacheAge = (currentTime - cachedData.timestamp) / (1000 * 60); // Tính tuổi cache theo phút
+//
+        //        // Kiểm tra cache có hợp lệ không (ví dụ: nhỏ hơn 1 ngày)
+        //        if (cacheAge < 1440) {
+        //            return cachedData.content;
+        //        }
+        //    }
+        //    return null; // Cache không hợp lệ hoặc không tồn tại
+        //}
 
         // Nếu nội dung chương hiện tại có trong cache, hiển thị từ cache
-        const cachedContent = loadChapterFromCache(storyName, chapterNumber);
-        if (cachedContent) {
-            document.getElementById("chapter-content").innerHTML = cachedContent;
-        }
+        //const cachedContent = loadChapterFromCache(storyName, chapterNumber);
+        //if (cachedContent) {
+            //document.getElementById("chapter-content").innerHTML = cachedContent;
+        //}
 
         // Lưu nội dung chương hiện tại vào cache
-        saveChapterContent(storyName, chapterNumber, currentContent);
+        //saveChapterContent(storyName, chapterNumber, currentContent);
 
 
     </script>

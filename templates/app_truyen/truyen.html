@@ -12,120 +12,97 @@
 
         <!-- Title -->
         <h2 class="text-center mb-4">Danh Sách Chương</h2>
-        {% if result %}
-            <div class="row mt-4">
-                {% for chapter in chapters %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <a href="{% url 'chapter_detail' story_name=story.title chapter_number=chapter.chapter_number %}">{{ chapter.title }}</a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <!-- Pagination -->
-            <nav aria-label="Page navigation example" class="mt-4">
-                <div class="d-flex justify-content-center align-items-center">
-                    <ul class="pagination mb-0">
-                        {% if has_prev %}
-                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-                            <li class="page-item"><a class="page-link" href="?page={{ prev_page }}">Trước</a></li>
-                        {% endif %}
+
+        <nav aria-label="Page navigation example" class="mt-4">
+            <div class="d-flex justify-content-center align-items-center">
+                <ul class="pagination mb-0">
+                    {% if has_prev %}
+                        <li class="page-item"><a class="page-link" href="{{ base_url }}/{{ story.title }}/trang-1">&laquo;
+                            Đầu tiên</a></li>
                         <li class="page-item"><a class="page-link"
-                                                 href="/{{ story.title }}/trang-{{ page_obj.number }}">{{ page_obj.number }}</a></li>
-                        {% if page_obj.has_next %}
-                            <li class="page-item"><a class="page-link"
-                                                     href="/{{ story.title }}/trang-{{ page_obj.next_page_number }}">Sau</a>
-                            </li>
-                            <li class="page-item"><a class="page-link" href="/{{ story.title }}/trang-{{ page_obj.paginator.num_pages }}">Cuối
-                                cùng &raquo;</a></li>
-                        {% endif %}
-                    </ul>
-                    <div class="input-group ml-3" style="max-width: 200px;">
-                        <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
-                        </div>
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ prev_page }}">Trước</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if has_next %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ next_page }}">Sau</a>
+                        </li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ max_page }}">Cuối
+                            cùng &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <div class="input-group ml-3" style="max-width: 200px;">
+                    <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
                     </div>
                 </div>
-            </nav>
-
-            <!-- Chapter list -->
-            <div class="row mt-4">
-                {% for chapter in page_obj %}
-                    <div class="col-md-6">
-                        <ul class="list-group">
-                            <li class="list-group-item">
-                                <a href="{% url 'chapter_detail' story_name=story.title chapter_number=forloop.counter %}">{{ chapter.title }}</a>
-                            </li>
-                        </ul>
-                    </div>
-                {% endfor %}
             </div>
+        </nav>
 
-            <!-- Pagination -->
-            <nav aria-label="Page navigation example" class="mt-4">
-                <div class="d-flex justify-content-center align-items-center">
-                    <ul class="pagination mb-0">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?page=1">&laquo; Đầu tiên</a></li>
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Trước</a>
-                            </li>
-                        {% endif %}
-                        <li class="page-item"><a class="page-link"
-                                                 href="?page={{ page_obj.number }}">{{ page_obj.number }}</a></li>
-                        {% if page_obj.has_next %}
-                            <li class="page-item"><a class="page-link"
-                                                     href="/{{ story.title }}/trang-{{ page_obj.next_page_number }}">Sau</a>
-                            </li>
-                            <li class="page-item"><a class="page-link" href="/{{ story.title }}/trang-{{ page_obj.paginator.num_pages }}">Cuối
-                                cùng &raquo;</a></li>
-                        {% endif %}
+        <!-- Chapter list -->
+        <div class="row mt-4">
+            {% for chapter in page_obj %}
+                <div class="col-md-6">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <a href="{% url 'chapter_detail' story_name=story.title chapter_number=forloop.counter %}">{{ chapter.title }}</a>
+                        </li>
                     </ul>
-                    <div class="input-group ml-3" style="max-width: 200px;">
-                        <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
-                        </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <nav aria-label="Page navigation example" class="mt-4">
+            <div class="d-flex justify-content-center align-items-center">
+                <ul class="pagination mb-0">
+                    {% if has_prev %}
+                        <li class="page-item"><a class="page-link" href="{{ base_url }}/{{ story.title }}/trang-1">&laquo;
+                            Đầu tiên</a></li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ prev_page }}">Trước</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if has_next %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ next_page }}">Sau</a>
+                        </li>
+                        <li class="page-item"><a class="page-link"
+                                                 href="{{ base_url }}/{{ story.title }}/trang-{{ max_page }}">Cuối
+                            cùng &raquo;</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <div class="input-group ml-3" style="max-width: 200px;">
+                    <input type="number" id="pageInput" class="form-control" placeholder="Nhập số trang">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="goToPage()">Đi đến trang</button>
                     </div>
                 </div>
-            </nav>
-
-        {% endif %}
+            </div>
+        </nav>
 
         <script>
             function goToPage() {
                 var pageInput = document.getElementById('pageInput').value;
                 var pageNumber = parseInt(pageInput);
-                var maxPage = '{{ page_obj.paginator.num_pages }}';
+                var maxPage = parseInt('{{ max_page }}');
+                var storyTitle = '{{ story.title }}';
+                var baseUrl = '{{ base_url }}';
 
                 if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > maxPage) {
-                    pageNumber = 1;
+                    alert('Số trang không hợp lệ! Vui lòng nhập số trong khoảng từ 1 đến ' + maxPage + '.');
+                    return;
                 }
 
-                window.location.href = '?page=' + pageNumber;
+                window.location.href = baseUrl + '/' + storyTitle + '/trang-' + pageNumber;
             }
+
         </script>
-        {#  <script>#}
-        {#      function checkCrawlStatus() {#}
-        {#        fetch("{% url 'crawl_status_view' story_name=story.title %}")#}
-        {#          .then(response => response.json())#}
-        {#          .then(data => {#}
-        {#            if (!data.crawling) {#}
-        {#              location.reload();#}
-        {#            } else {#}
-        {#              setTimeout(checkCrawlStatus, 5000); // Check again after 5 seconds#}
-        {#            }#}
-        {#          })#}
-        {#          .catch(error => console.error('Error checking crawl status:', error));#}
-        {#      }#}
-        {##}
-        {#      // Start checking crawl status if the page is in crawling state#}
-        {#      {% if page_obj.object_list|length == 0 %}#}
-        {#        checkCrawlStatus();#}
-        {#      {% endif %}#}
-        {#    </script>#}
     </div>
 {% endblock %}

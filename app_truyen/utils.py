@@ -69,7 +69,7 @@ def fetch_chapter_content(chapter_url):
         chapter_title = (
             chapter_title_tag.find('a', class_='chapter-title').get_text(strip=True)
             if chapter_title_tag and chapter_title_tag.find('a', class_='chapter-title')
-            else "Untitled Chapter"
+            else None
         )
 
         # Tìm nội dung chương
@@ -266,39 +266,62 @@ def save_or_update_story(story_info):
 
 
 # VPN
+import os
+import subprocess
+import platform
+
 def get_vpn_status(vpn_name):
     """
-            Kiểm tra trạng thái của VPN.
-            Args:
-                vpn_name (str): Tên của VPN cần kiểm tra.
+    Kiểm tra trạng thái của VPN.
+    Args:
+        vpn_name (str): Tên của VPN cần kiểm tra.
 
-            Returns:
-                bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
-            """
+    Returns:
+        bool: True nếu VPN đang được bật, False nếu VPN đang tắt.
+    """
     try:
-        result = subprocess.run(
-            ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
-            stdout=subprocess.PIPE,
-            text=True,
-            check=True
-        )
-        # Kiểm tra nếu VPN đang hoạt động
-        active_connections = result.stdout.strip().split('\n')
-        for connection in active_connections:
-            name, conn_type, state = connection.split(':')
-            if name == vpn_name and conn_type == "vpn" and state == "activated":
+        if platform.system() == "Linux":
+            # Kiểm tra trên Ubuntu (Linux)
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "NAME,TYPE,STATE", "connection", "show", "--active"],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            # Kiểm tra nếu VPN đang hoạt động
+            active_connections = result.stdout.strip().split('\n')
+            for connection in active_connections:
+                name, conn_type, state = connection.split(':')
+                if name == vpn_name and conn_type == "vpn" and state == "activated":
+                    print(f"VPN {vpn_name} đang được bật.")
+                    return True
+            print(f"VPN {vpn_name} đang tắt.")
+            return False
+
+        elif platform.system() == "Windows":
+            # Kiểm tra trên Windows
+            result = subprocess.run(
+                ["powershell", "-Command",
+                 f"Get-VpnConnection | Where-Object {{$_.Name -eq '{vpn_name}'}} | Select-Object -ExpandProperty ConnectionStatus"],
+                stdout=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            connection_status = result.stdout.strip()
+            if connection_status.lower() == "connected":
                 print(f"VPN {vpn_name} đang được bật.")
                 return True
-        print(f"VPN {vpn_name} đang tắt.")
-        return False
+            print(f"VPN {vpn_name} đang tắt.")
+            return False
+
+        else:
+            raise NotImplementedError("Hệ điều hành không được hỗ trợ.")
     except subprocess.CalledProcessError as e:
         print(f"Lỗi khi kiểm tra trạng thái VPN: {e}")
         raise
 
-
 def is_vpn_enable():
     return get_vpn_status(os.getenv('VPN_NAME'))
-
 
 def toggle_vpn(vpn_enabled, vpn_name=None):
     """
@@ -315,18 +338,33 @@ def toggle_vpn(vpn_enabled, vpn_name=None):
         raise ValueError("VPN_NAME environment variable is not set.")
 
     try:
-        if not vpn_enabled:
-            print("Enabling VPN...")
-            subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
-            print(f"VPN {vpn_name} đã được bật.")
+        if platform.system() == "Linux":
+            if not vpn_enabled:
+                print("Enabling VPN...")
+                subprocess.run(["nmcli", "connection", "up", vpn_name], check=True)
+                print(f"VPN {vpn_name} đã được bật.")
+            else:
+                print("Disabling VPN...")
+                subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
+                print(f"VPN {vpn_name} đã được tắt.")
+        elif platform.system() == "Windows":
+            if not vpn_enabled:
+                print("Enabling VPN...")
+                subprocess.run(["powershell", "-Command",
+                                f"rasdial {vpn_name}", os.getenv('VPN_USER'), os.getenv('VPN_PASSWORD')], check=True)
+                print(f"VPN {vpn_name} đã được bật.")
+            else:
+                print("Disabling VPN...")
+                subprocess.run(["powershell", "-Command",
+                                f"rasdial {vpn_name} /disconnect"], check=True)
+                print(f"VPN {vpn_name} đã được tắt.")
         else:
-            print("Disabling VPN...")
-            subprocess.run(["nmcli", "connection", "down", vpn_name], check=True)
-            print(f"VPN {vpn_name} đã được tắt.")
+            raise NotImplementedError("Hệ điều hành không được hỗ trợ.")
         return not vpn_enabled
     except subprocess.CalledProcessError as e:
         print(f"Lỗi khi bật/tắt VPN: {e}")
         raise
+
 
 
 def send_request(url):

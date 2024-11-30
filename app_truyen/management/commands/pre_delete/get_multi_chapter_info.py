@@ -124,8 +124,9 @@ class Command(BaseCommand):
                 if soup.find('h2').find('a', class_='chapter-title'):
                     chapter_title = soup.find('h2').find('a', class_='chapter-title').get_text(strip=True)
             if chapter_title is None:
-                chapter_title = 'Untitled Chapter'
+                # chapter_title = 'Untitled Chapter'
                 self.stdout.write(self.style.WARNING("Chapter title not found"))
+                return
 
             chapter_content_div = soup.find('div', class_='chapter-c')
             if chapter_content_div:
