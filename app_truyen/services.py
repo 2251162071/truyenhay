@@ -119,7 +119,7 @@ def crawl_chapters_for_story(story_title, start_chapter, end_chapter=None):
             if chapter_title and chapter_content:
                 chapters_to_create.append({
                     'chapter_number': chapter_number,
-                    'story_id': story.id,
+                    'story_title': story.title,
                     'title': chapter_title,
                     'content': chapter_content,
                     'views': 0,

@@ -35,11 +35,11 @@ class Story(models.Model):
         return self.title_full
 
 class StoryGenre(models.Model):
-    story = models.ForeignKey(Story, to_field='title', on_delete=models.CASCADE)
-    genre = models.ForeignKey(Genre, to_field='name', on_delete=models.CASCADE)
+    story_title = models.ForeignKey(Story, to_field='title', on_delete=models.CASCADE, db_column='story_title')
+    genre_name = models.ForeignKey(Genre, to_field='name', on_delete=models.CASCADE, db_comment='genre_name')
 
     class Meta:
-        unique_together = ('story', 'genre')
+        unique_together = ('story_title', 'genre_name')
 
 class Chapter(models.Model):
     story_chapter = models.CharField(max_length=255, primary_key=True, editable=False)
