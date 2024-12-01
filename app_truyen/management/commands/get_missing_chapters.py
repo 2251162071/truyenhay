@@ -94,3 +94,10 @@ class Command(BaseCommand):
             return start, end
         except Exception:
             raise ValueError("Chapter range must be in the format 'start-end' with valid integers.")
+
+    def change_title(self, title):
+        pattern = r"(Chương)(\d+)(.*)"
+        match = re.search(pattern, title)
+        if match:
+            return match.group(1) + " " + match.group(2) + match.group(3)
+        return title

@@ -15,5 +15,12 @@
       <jdbc-url>jdbc:postgresql://ih2twc30fu.lpeuavkzt8.tsdb.cloud.timescale.com:30864/tsdb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="postgres@dbaicskt.postgres.database.azure.com" uuid="5b49e604-550e-4113-a9d4-234fcc54514b">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://dbaicskt.postgres.database.azure.com:5432/postgres</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

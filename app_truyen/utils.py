@@ -89,12 +89,18 @@ def fetch_chapter_content(chapter_url):
 
 
 ## Save Chapter
+def change_title(title):
+    pattern = r"(Chương)(\d+)(.*)"
+    match = re.search(pattern, title)
+    if match:
+        return match.group(1) + " " + match.group(2) + match.group(3)
+    return title
 def save_or_update_chapter(chapter):
     chapter, created = Chapter.objects.update_or_create(
         story_id=chapter['story_id'],
         chapter_number=chapter['chapter_number'],
         defaults={
-            'title': chapter['title'],
+            'title': change_title(chapter['title']),
             'content': chapter['content'],
             'views': chapter['views'],
             'updated_at': chapter['updated_at']
